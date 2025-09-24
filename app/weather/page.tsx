@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +19,24 @@ interface WeatherData {
   windSpeed: number
   rainfall: number
   visibility: number
+  farmingRecommendations?: string[]
+}
+
+interface WeatherResponse {
+  success: boolean
+  data: {
+    location: {
+      name: string
+      country: string
+      lat: number
+      lon: number
+    }
+    forecast: WeatherData[]
+    alerts: WeatherAlert[]
+    lastUpdated: string
+  }
+  source: string
+  error?: string
 }
 
 interface WeatherAlert {
@@ -32,89 +50,34 @@ interface WeatherAlert {
 
 export default function WeatherPage() {
   const [selectedDay, setSelectedDay] = useState(0)
+  const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const weatherAlerts: WeatherAlert[] = [
-    {
-      id: "1",
-      type: "warning",
-      title: "Heavy Rainfall Warning",
-      description:
-        "Heavy rainfall expected in the next 48 hours. Consider harvesting ready crops and protecting young plants.",
-      severity: "high",
-      validUntil: "2024-01-20 18:00",
-    },
-    {
-      id: "2",
-      type: "advisory",
-      title: "High Wind Advisory",
-      description: "Strong winds up to 45 km/h expected. Secure loose farming equipment and check crop supports.",
-      severity: "medium",
-      validUntil: "2024-01-19 12:00",
-    },
-  ]
+  // Fetch weather data from our API
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/weather')
+        const data: WeatherResponse = await response.json()
+        
+        setWeatherData(data)
+        setError(null)
+      } catch (err) {
+        console.error('Failed to fetch weather data:', err)
+        setError('Failed to load weather data')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const weatherForecast: WeatherData[] = [
-    {
-      date: "2024-01-18",
-      day: "Today",
-      high: 28,
-      low: 18,
-      condition: "Heavy Rain",
-      icon: "rain",
-      humidity: 85,
-      windSpeed: 15,
-      rainfall: 25,
-      visibility: 5,
-    },
-    {
-      date: "2024-01-19",
-      day: "Tomorrow",
-      high: 26,
-      low: 16,
-      condition: "Cloudy",
-      icon: "cloudy",
-      humidity: 75,
-      windSpeed: 12,
-      rainfall: 5,
-      visibility: 8,
-    },
-    {
-      date: "2024-01-20",
-      day: "Saturday",
-      high: 30,
-      low: 20,
-      condition: "Partly Cloudy",
-      icon: "partly-cloudy",
-      humidity: 65,
-      windSpeed: 8,
-      rainfall: 0,
-      visibility: 10,
-    },
-    {
-      date: "2024-01-21",
-      day: "Sunday",
-      high: 32,
-      low: 22,
-      condition: "Sunny",
-      icon: "sunny",
-      humidity: 55,
-      windSpeed: 6,
-      rainfall: 0,
-      visibility: 12,
-    },
-    {
-      date: "2024-01-22",
-      day: "Monday",
-      high: 29,
-      low: 19,
-      condition: "Light Rain",
-      icon: "light-rain",
-      humidity: 80,
-      windSpeed: 10,
-      rainfall: 8,
-      visibility: 7,
-    },
-  ]
+    fetchWeatherData()
+  }, [])
+
+  // Use the fetched data or fallback to empty arrays
+  const weatherAlerts = weatherData?.data.alerts || []
+  const weatherForecast = weatherData?.data.forecast || []
 
   const getWeatherIcon = (condition: string) => {
     switch (condition) {
@@ -166,6 +129,75 @@ export default function WeatherPage() {
 
   const selectedWeather = weatherForecast[selectedDay]
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-primary text-primary-foreground shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/farmer">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <CloudRain className="h-6 w-6" />
+                <h1 className="text-xl font-bold">Weather Forecast</h1>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <CloudRain className="h-12 w-12 mx-auto mb-4 animate-pulse text-muted-foreground" />
+              <p className="text-lg font-medium mb-2">Loading Weather Data...</p>
+              <p className="text-muted-foreground">Fetching latest forecast information</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error || !selectedWeather) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-primary text-primary-foreground shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/farmer">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <CloudRain className="h-6 w-6" />
+                <h1 className="text-xl font-bold">Weather Forecast</h1>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+              <p className="text-lg font-medium mb-2">Weather Data Unavailable</p>
+              <p className="text-muted-foreground mb-4">
+                {error || 'Unable to load weather forecast. Please try again later.'}
+              </p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -189,10 +221,20 @@ export default function WeatherPage() {
         {/* Location */}
         <div className="flex items-center gap-2 mb-6">
           <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Ludhiana, Punjab</span>
+          <span className="text-sm text-muted-foreground">
+            {weatherData?.data.location ? 
+              `${weatherData.data.location.name}, ${weatherData.data.location.country}` : 
+              'Location Unknown'
+            }
+          </span>
           <Button variant="ghost" size="sm" className="text-xs">
             Change Location
           </Button>
+          {weatherData?.source && (
+            <Badge variant="outline" className="text-xs ml-2">
+              {weatherData.source === 'openweathermap' ? 'Live Data' : 'Mock Data'}
+            </Badge>
+          )}
         </div>
 
         {/* Weather Alerts */}
@@ -275,30 +317,39 @@ export default function WeatherPage() {
                 </div>
 
                 {/* Farming Recommendations */}
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="font-medium text-green-800 mb-2">Farming Recommendations</h3>
-                  <div className="text-sm text-green-700 space-y-1">
-                    {selectedWeather.rainfall > 15 ? (
-                      <>
-                        <p>• Avoid field operations due to heavy rainfall</p>
-                        <p>• Ensure proper drainage in fields</p>
-                        <p>• Harvest ready crops before rain intensifies</p>
-                      </>
-                    ) : selectedWeather.rainfall > 5 ? (
-                      <>
-                        <p>• Light rain is good for crop growth</p>
-                        <p>• Monitor for pest activity after rain</p>
-                        <p>• Check irrigation needs may be reduced</p>
-                      </>
-                    ) : (
-                      <>
-                        <p>• Good weather for field operations</p>
-                        <p>• Consider irrigation if soil is dry</p>
-                        <p>• Ideal time for spraying if needed</p>
-                      </>
-                    )}
+                {selectedWeather && (
+                  <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="font-medium text-green-800 mb-2">Farming Recommendations</h3>
+                    <div className="text-sm text-green-700 space-y-1">
+                      {selectedWeather.farmingRecommendations && selectedWeather.farmingRecommendations.length > 0 ? (
+                        selectedWeather.farmingRecommendations.map((recommendation, index) => (
+                          <p key={index}>• {recommendation}</p>
+                        ))
+                      ) : (
+                        // Fallback recommendations based on weather conditions
+                        selectedWeather.rainfall > 15 ? (
+                          <>
+                            <p>• Avoid field operations due to heavy rainfall</p>
+                            <p>• Ensure proper drainage in fields</p>
+                            <p>• Harvest ready crops before rain intensifies</p>
+                          </>
+                        ) : selectedWeather.rainfall > 5 ? (
+                          <>
+                            <p>• Light rain is good for crop growth</p>
+                            <p>• Monitor for pest activity after rain</p>
+                            <p>• Check irrigation needs may be reduced</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>• Good weather for field operations</p>
+                            <p>• Consider irrigation if soil is dry</p>
+                            <p>• Ideal time for spraying if needed</p>
+                          </>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>

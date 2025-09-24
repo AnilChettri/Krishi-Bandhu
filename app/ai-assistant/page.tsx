@@ -6,11 +6,12 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Bot, Mic, MicOff, Camera, Send, ArrowLeft, Loader2, Volume2, Globe, User } from "lucide-react"
+import { Bot, Camera, Send, ArrowLeft, Loader2, User } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { ChatLoadingMessage, LoadingButton } from "@/components/loading"
 import FarmGuardLayout from "@/components/farmguard-layout"
+import VoiceInput, { VoiceOutput } from "@/components/voice-input"
 
 interface Message {
   id: string
@@ -29,7 +30,9 @@ export default function AIAssistantPage() {
     const messages = {
       en: "Hello! I'm your AI farming assistant. You can ask me questions about crops, pests, weather, or farming techniques. I can help in text, voice, or by analyzing photos of your crops.",
       hi: "नमस्ते! मैं आपका AI कृषि सहायक हूँ। आप मुझसे फसलों, कीटों, मौसम या कृषि तकनीकों के बारे में सवाल पूछ सकते हैं। मैं टेक्स्ट, आवाज़ या आपकी फसलों की फोटो का विश्लेषण करके मदद कर सकता हूँ।",
-      bn: "নমস্কার! আমি আপনার AI কৃষি সহায়ক। আপনি আমাকে ফসল, কীটপতঙ্গ, আবহাওয়া বা কৃষি কৌশল সম্পর্কে প্রশ্ন করতে পারেন। আমি টেক্সট, ভয়েস বা আপনার ফসলের ছবি বিশ্লেষণ করে সাহায্য করতে পারি।"
+      kn: "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ AI ಕೃಷಿ ಸಹಾಯಕನೆಂದು ಹೇಳಲಾಗಿದ್ದೇನೆ. ನೀವು ನನ್ನ ಬೆಳೆಗಳು, ಕೀಟಗಳು, ಹವಾಮಾನ ಅಥವಾ ಕೃಷಿ ತಂತ್ರಗಳ ಬಗ್ಗೆ ತಿಳುವಳಿಕೆ ಇಡಬಹುದು. ನಾನು ಪಠ್ಯ, ಕಂಠ, ಅಥವಾ ನಿಮ್ಮ ಬೆಳೆಗಳ ಫೋಟೋಗಳ ವिಸ್ಲೇಷಣೆय ಮाಡि ಆಧाರದ ಮिಸು मದाಗाறಬಹುದು.",
+      pa: "ਨਮਸਕਾਰ! ਮੈਂ ਤੁਹਾਡਾ AI ਖੇਤੀ ਸਹਾਇਕ ਹਾਂ। ਤੁਸੀਂ ਮੇਰੇ ਕੋਲ ਫਸਲਾਂ, ਕੀੜੇ-ਮਕੌੜਿਆਂ, ਮੌਸਮ, ਜਾਂ ਖੇਤੀਬਾੜੀ ਦੀਆਂ ਤਕਨੀਕਾਂ ਬਾਰੇ ਸਵਾਲ ਕਹਿ ਸਕਦੇ ਹੋ। ਮੈਂ ਟੈਕਸਟ, ਆਵਾਜ़, ਜਾਂ ਤੁਹਾਡੀਆਂ ਫਸਲਾਂ ਦੀਆਂ ਤਸਵੀਰਾਂ ਦਾ ਵिਸ਼ਲੇਸਣ ਕਰਕੇ मਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।",
+      ta: "வரவேற்கிறேன்! நಾன் உங்கள் AI வिவசಾய உதவियಾளர್. நீங்கள್ பयिர್கள್, பூசिகள್, வಾனिலை ಅல್லதು வिவசಾय தಆகाரिக தिகाளाத पழड़்ड़ि பசவामड़ರ್களೈ ಏனाதೂம़ கேளುள್கाர್. நाன್ பe்य पஜियர್ வளர್சाियिல್, உयिர್சियिல್ அல್லाதು உयिரಅகளऺ யುவುடಅகऺ யाல್லा பeಂல್லा मऺகಂபಅಂि ஒனा தिழि கिஞाதि मऺகಅபामऺ मऺಆम் मऺவिमा मऺகाதऺவ़೏मऺரाஂகाதऺஅஂகऺரஂम मऺதऺகऺஞऺஂகऺ."
     }
     return messages[language as keyof typeof messages] || messages.en
   }
@@ -48,7 +51,6 @@ export default function AIAssistantPage() {
     ])
   }, [language])
   const [inputText, setInputText] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -121,15 +123,10 @@ export default function AIAssistantPage() {
     }
   }
 
-  const handleVoiceRecording = () => {
-    if (isRecording) {
-      setIsRecording(false)
-      // Simulate voice processing
-      setTimeout(() => {
-        handleSendMessage("How can I improve my wheat crop yield this season?")
-      }, 1000)
-    } else {
-      setIsRecording(true)
+  // Handle voice input transcript
+  const handleVoiceTranscript = (transcript: string) => {
+    if (transcript.trim()) {
+      handleSendMessage(transcript)
     }
   }
 
@@ -140,13 +137,6 @@ export default function AIAssistantPage() {
     }
   }
 
-  const speakMessage = (text: string) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = language === "hi" ? "hi-IN" : "en-US"
-      speechSynthesis.speak(utterance)
-    }
-  }
 
   return (
     <FarmGuardLayout>
@@ -201,14 +191,12 @@ export default function AIAssistantPage() {
                         {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                       {message.type === "assistant" && (
-                        <Button
-                          variant="ghost"
+                        <VoiceOutput 
+                          text={message.content}
                           size="sm"
-                          onClick={() => speakMessage(message.content)}
-                          className="h-6 w-6 p-0 hover:bg-gray-100"
-                        >
-                          <Volume2 className="h-3 w-3" />
-                        </Button>
+                          variant="ghost"
+                          className="hover:bg-gray-100"
+                        />
                       )}
                     </div>
                   </div>
@@ -252,14 +240,14 @@ export default function AIAssistantPage() {
                 >
                   <Camera className="h-4 w-4 text-gray-500" />
                 </Button>
-                <Button
-                  variant="ghost"
+                <VoiceInput
+                  onTranscript={handleVoiceTranscript}
+                  onError={(error) => console.error('Voice error:', error)}
                   size="sm"
-                  onClick={handleVoiceRecording}
-                  className={`h-8 w-8 p-0 hover:bg-gray-100 ${isRecording ? "text-red-500" : "text-gray-500"}`}
-                >
-                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </Button>
+                  variant="ghost"
+                  className="hover:bg-gray-100"
+                  showLanguageIndicator={false}
+                />
               </div>
             </div>
             <LoadingButton
@@ -272,13 +260,6 @@ export default function AIAssistantPage() {
             </LoadingButton>
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-          {isRecording && (
-            <div className="mt-2 text-center">
-              <Badge variant="destructive" className="animate-pulse">
-                Recording... Tap mic to stop
-              </Badge>
-            </div>
-          )}
         </div>
       </div>
       </div>

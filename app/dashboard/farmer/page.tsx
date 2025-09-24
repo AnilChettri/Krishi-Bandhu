@@ -7,18 +7,22 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import FarmGuardLayout from "@/components/farmguard-layout"
-import { Calculator, Calendar, TrendingUp, CloudRain, Sprout, Bug, Thermometer, Droplets, Wind, Sun, Bot, BarChart3, HelpCircle, TestTube, Store } from "lucide-react"
+import { Calculator, Calendar, TrendingUp, CloudRain, Sprout, Bug, Thermometer, Droplets, Wind, Sun, Bot, BarChart3, HelpCircle, TestTube, Store, Cloud } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import FarmerGuide, { farmerGuideSteps } from "@/components/farmer-guide"
 import PWAInstallPrompt from "@/components/pwa-install-prompt"
 import { useLanguage } from "@/contexts/language-context"
 import { WeatherSkeleton, CardSkeleton } from "@/components/loading"
+import { useTodaysWeather } from "@/lib/hooks/use-weather"
 
 export default function FarmerDashboard() {
   const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('Farmer')
+  
+  // Get today's weather data
+  const { weather: todaysWeather, alerts: weatherAlerts, loading: weatherLoading } = useTodaysWeather()
   
   useEffect(() => {
     // Simulate loading dashboard data
@@ -40,6 +44,31 @@ export default function FarmerDashboard() {
     
     loadDashboard()
   }, [])
+
+  // Helper function to get weather icons
+  const getWeatherIcon = (condition: string) => {
+    switch (condition?.toLowerCase()) {
+      case 'rain':
+      case 'heavy rain':
+      case 'thunderstorm':
+        return <CloudRain className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+      case 'light rain':
+      case 'drizzle':
+        return <CloudRain className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+      case 'clear':
+      case 'sunny':
+        return <Sun className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+      case 'clouds':
+      case 'cloudy':
+      case 'overcast':
+        return <Cloud className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+      case 'partly cloudy':
+      case 'few clouds':
+        return <Cloud className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+      default:
+        return <Sun className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+    }
+  }
 
   return (
     <FarmGuardLayout>
@@ -81,9 +110,9 @@ export default function FarmerDashboard() {
           </div>
 
           {/* Today's Weather - Priority #1 for farmers */}
-          {loading ? (
+          {weatherLoading ? (
             <WeatherSkeleton />
-          ) : (
+          ) : todaysWeather ? (
             <Card className="mb-6 bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 weather-card">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -100,35 +129,65 @@ export default function FarmerDashboard() {
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <Sun className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-800">28°C</div>
-                  <div className="text-sm text-blue-600">Sunny</div>
+                  {getWeatherIcon(todaysWeather.condition)}
+                  <div className="text-2xl font-bold text-blue-800">{todaysWeather.high}°C</div>
+                  <div className="text-sm text-blue-600">{todaysWeather.condition}</div>
                 </div>
                 <div className="text-center">
                   <Droplets className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-800">65%</div>
+                  <div className="text-2xl font-bold text-blue-800">{todaysWeather.humidity}%</div>
                   <div className="text-sm text-blue-600">Humidity</div>
                 </div>
                 <div className="text-center">
                   <Wind className="h-8 w-8 text-gray-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-800">12 km/h</div>
+                  <div className="text-2xl font-bold text-blue-800">{todaysWeather.windSpeed} km/h</div>
                   <div className="text-sm text-blue-600">Wind</div>
                 </div>
                 <div className="text-center">
                   <CloudRain className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-800">20%</div>
-                  <div className="text-sm text-blue-600">Rain Chance</div>
+                  <div className="text-2xl font-bold text-blue-800">{todaysWeather.rainfall}mm</div>
+                  <div className="text-sm text-blue-600">Rainfall</div>
                 </div>
               </div>
               
-              <Alert className="mt-4 border-orange-200 bg-orange-50">
-                <CloudRain className="h-4 w-4 text-orange-600" />
-                <AlertDescription className="text-orange-800">
-                  <strong>⚠️ Important:</strong> Heavy rain expected tomorrow. Good time to harvest ready crops today!
-                </AlertDescription>
-              </Alert>
+              {/* Display weather alerts if any */}
+              {weatherAlerts.length > 0 && (
+                <Alert className="mt-4 border-orange-200 bg-orange-50">
+                  <CloudRain className="h-4 w-4 text-orange-600" />
+                  <AlertDescription className="text-orange-800">
+                    <strong>⚠️ {weatherAlerts[0].title}:</strong> {weatherAlerts[0].description}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Farming recommendations */}
+              {todaysWeather.farmingRecommendations && todaysWeather.farmingRecommendations.length > 0 && (
+                <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-green-800 mb-1 text-sm">Today's Farming Tips:</h4>
+                  <p className="text-xs text-green-700">
+                    • {todaysWeather.farmingRecommendations[0]}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
+          ) : (
+            <Card className="mb-6 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-600 flex items-center gap-2">
+                    <CloudRain className="h-6 w-6" />
+                    Weather Unavailable
+                  </h3>
+                  <Link href="/weather">
+                    <Button size="sm" variant="outline">
+                      Try Again
+                    </Button>
+                  </Link>
+                </div>
+                <p className="text-sm text-gray-600">Unable to load weather data. Please check your connection.</p>
+              </CardContent>
+            </Card>
           )}
 
           {/* Quick Actions - What farmers need most */}

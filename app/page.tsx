@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Sprout, Users, Globe, ArrowRight, CheckCircle, Bot, CloudRain, TrendingUp, HelpCircle } from "lucide-react"
@@ -13,6 +14,27 @@ import FarmerTutorial from "@/components/farmer-tutorial"
 export default function HomePage() {
   const { language, setLanguage, t } = useLanguage()
   const [showLanguageSelect, setShowLanguageSelect] = useState(false)
+  const router = useRouter()
+  
+  useEffect(() => {
+    // Check if this is the user's first visit
+    const languageSelected = localStorage.getItem('language-selected')
+    const userAuthenticated = localStorage.getItem('user-authenticated')
+    
+    if (!languageSelected) {
+      // First visit - redirect to language selection
+      router.push('/language-selection')
+      return
+    }
+    
+    if (!userAuthenticated) {
+      // Language selected but not authenticated - redirect to sign in
+      router.push('/auth/signin')
+      return
+    }
+    
+    // User is authenticated and has selected language - show landing page
+  }, [router])
   
   const showGuideAgain = () => {
     if (typeof window !== 'undefined') {
@@ -24,14 +46,9 @@ export default function HomePage() {
   const languageOptions: { code: Language; name: string; nativeName: string }[] = [
     { code: "en", name: "English", nativeName: "English" },
     { code: "hi", name: "Hindi", nativeName: "हिंदी" },
-    { code: "bn", name: "Bengali", nativeName: "বাংলা" },
-    { code: "te", name: "Telugu", nativeName: "తెలుగు" },
-    { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
-    { code: "mr", name: "Marathi", nativeName: "मराठी" },
-    { code: "gu", name: "Gujarati", nativeName: "ગુજરાતી" },
     { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
-    { code: "ml", name: "Malayalam", nativeName: "മലയാളം" },
     { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
+    { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
   ]
 
   return (

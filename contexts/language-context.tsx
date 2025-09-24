@@ -9,19 +9,30 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void
   t: (key: keyof typeof import("@/lib/i18n").translations.en) => string
   languages: typeof languages
+  isLoading: boolean
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en")
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Load saved language from localStorage
     const savedLanguage = localStorage.getItem("farmguard-language") as Language
     if (savedLanguage && savedLanguage in languages) {
       setLanguageState(savedLanguage)
+      document.documentElement.lang = savedLanguage
+    } else {
+      // Try to detect browser language
+      const browserLang = navigator.language.split('-')[0] as Language
+      if (browserLang in languages) {
+        setLanguageState(browserLang)
+        document.documentElement.lang = browserLang
+      }
     }
+    setIsLoading(false)
   }, [])
 
   const setLanguage = (lang: Language) => {
@@ -29,6 +40,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("farmguard-language", lang)
     // Update document language
     document.documentElement.lang = lang
+    
+    // Dispatch custom event for language change
+    window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }))
   }
 
   const t = (key: keyof typeof import("@/lib/i18n").translations.en) => {
