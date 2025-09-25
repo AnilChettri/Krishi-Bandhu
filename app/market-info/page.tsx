@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,8 +16,10 @@ import {
   ShoppingCart,
   AlertCircle,
   BarChart3,
+  RefreshCw,
 } from "lucide-react"
 import Link from "next/link"
+import { localStorageService, isOffline } from '@/lib/local-storage'
 
 interface CropPrice {
   id: string
@@ -44,8 +46,67 @@ export default function MarketInfoPage() {
   const [selectedMarket, setSelectedMarket] = useState("ludhiana")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [marketData, setMarketData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [dataSource, setDataSource] = useState<string>('')
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
-  const cropPrices: CropPrice[] = [
+  // Fetch market data with resilient handling
+  const fetchMarketData = async (forceRefresh = false) => {
+    try {
+      setRefreshing(true)
+      
+      // Check if we're offline and have cached data
+      if (isOffline() && !forceRefresh) {
+        const cached = localStorageService.getBestMarketData()
+        if (cached.data) {
+          setMarketData(cached.data)
+          setDataSource(`${cached.source} (${Math.round(cached.age / 60000)}min ago)`)
+          setLastRefresh(new Date())
+          return
+        }
+      }
+
+      // Fetch from API
+      const url = `/api/market-info${forceRefresh ? '?refresh=true' : ''}`
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      setMarketData(data.data)
+      setDataSource(data.source || 'api')
+      setLastRefresh(new Date())
+      
+      // Cache the data for offline use
+      if (data.success && data.data) {
+        localStorageService.setMarketData({
+          prices: data.data.prices,
+          alerts: data.data.alerts,
+          summary: data.data.summary,
+          lastUpdated: data.data.lastUpdated
+        })
+      }
+      
+    } catch (error) {
+      console.error('Failed to fetch market data:', error)
+      
+      // Try to use cached data as fallback
+      const cached = localStorageService.getBestMarketData()
+      if (cached.data) {
+        setMarketData(cached.data)
+        setDataSource(`fallback (${Math.round(cached.age / 60000)}min old)`)
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchMarketData()
+  }, [])
+
+  const cropPrices: CropPrice[] = marketData?.prices || [
     {
       id: "1",
       name: "Rice (Basmati)",
@@ -204,7 +265,8 @@ export default function MarketInfoPage() {
 
       <main className="container mx-auto px-4 py-6">
         {/* Market Selection and Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select value={selectedMarket} onValueChange={setSelectedMarket}>
@@ -242,6 +304,26 @@ export default function MarketInfoPage() {
               <SelectItem value="low">Low Demand</SelectItem>
             </SelectContent>
           </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchMarketData(true)}
+              disabled={refreshing}
+              className="text-xs"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            
+            {isOffline() && (
+              <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                📡 Offline
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -255,6 +337,9 @@ export default function MarketInfoPage() {
                 </CardTitle>
                 <CardDescription>
                   Live prices from {selectedMarket.charAt(0).toUpperCase() + selectedMarket.slice(1)} Mandi
+                  {dataSource && (
+                    <span className="ml-2 text-xs opacity-75">• Source: {dataSource}</span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>

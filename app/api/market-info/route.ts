@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { API_CONFIG } from '@/lib/api-config'
+import { apiResilienceService } from '@/lib/api-resilience'
 
 interface MarketPrice {
   crop: string
@@ -129,40 +130,64 @@ export async function GET(request: NextRequest) {
     const crop = searchParams.get('crop')
     const market = searchParams.get('market')
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    const forceRefresh = searchParams.get('refresh') === 'true'
 
-    // Always use mock data for now since we don't have a real market API
-    const mockData = getMockMarketData()
+    console.log(`Market API request: crop=${crop}, market=${market}, limit=${limit}, forceRefresh=${forceRefresh}`)
 
-    // Filter by crop if specified
-    if (crop) {
-      mockData.data.prices = mockData.data.prices.filter(p => 
+    // Use resilient service to get market data
+    const result = await apiResilienceService.getMarketData()
+    
+    let marketData = result.data
+    
+    // Apply filters if specified
+    if (crop && marketData.prices) {
+      marketData.prices = marketData.prices.filter((p: any) => 
         p.crop.toLowerCase().includes(crop.toLowerCase())
       )
     }
 
-    // Filter by market if specified
-    if (market) {
-      mockData.data.prices = mockData.data.prices.filter(p => 
+    if (market && marketData.prices) {
+      marketData.prices = marketData.prices.filter((p: any) => 
         p.market.toLowerCase().includes(market.toLowerCase())
       )
     }
 
-    // Limit results if specified
-    if (limit && limit > 0) {
-      mockData.data.prices = mockData.data.prices.slice(0, limit)
+    if (limit && limit > 0 && marketData.prices) {
+      marketData.prices = marketData.prices.slice(0, limit)
     }
 
-    return NextResponse.json(mockData)
+    // Update summary after filtering
+    if (marketData.prices) {
+      marketData.summary = {
+        ...marketData.summary,
+        totalCrops: marketData.prices.length,
+        pricesUp: marketData.prices.filter((p: any) => p.trend === 'up').length,
+        pricesDown: marketData.prices.filter((p: any) => p.trend === 'down').length
+      }
+    }
+
+    return NextResponse.json({
+      success: result.success,
+      data: marketData,
+      source: result.source,
+      cached: result.cached,
+      timestamp: result.timestamp,
+      error: result.error
+    })
 
   } catch (error) {
-    console.error('Market API error:', error)
+    console.error('Market API critical error:', error)
+
+    // Emergency fallback to fresh mock data
+    const mockData = getMockMarketData()
 
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch market data',
-      data: null,
-      source: 'error'
-    }, { status: 500 })
+      error: 'All market services unavailable',
+      data: mockData.data,
+      source: 'emergency-fallback',
+      timestamp: new Date().toISOString()
+    })
   }
 }
 

@@ -26,13 +26,27 @@ export const API_CONFIG = {
   },
   
   WEATHER: {
-    API_KEY: process.env.WEATHER_API_KEY || process.env.NEXT_PUBLIC_WEATHER_API_KEY || '91360454e88e0ed9028745c4d7c6aacc',
+    // Primary weather API keys (supports multiple for rotation)
+    API_KEYS: (process.env.WEATHER_API_KEYS || process.env.NEXT_PUBLIC_WEATHER_API_KEYS || '').
+      split(',').filter(k => k.trim()),
+    API_KEY: process.env.WEATHER_API_KEY || process.env.NEXT_PUBLIC_WEATHER_API_KEY,
+    
+    // Alternative weather providers for fallback
+    WEATHERAPI_KEY: process.env.WEATHERAPI_KEY || process.env.NEXT_PUBLIC_WEATHERAPI_KEY,
+    ACCUWEATHER_KEY: process.env.ACCUWEATHER_KEY || process.env.NEXT_PUBLIC_ACCUWEATHER_KEY,
+    
     BASE_URL: 'https://api.openweathermap.org/data/2.5',
     HOURLY_FORECAST_URL: 'https://api.openweathermap.org/data/2.5/forecast',
+    WEATHERAPI_URL: 'http://api.weatherapi.com/v1',
     UNITS: 'metric',
     DEFAULT_LAT: Number(process.env.WEATHER_DEFAULT_LAT) || 30.9010, // Ludhiana, Punjab (farming region)
     DEFAULT_LON: Number(process.env.WEATHER_DEFAULT_LON) || 75.8573,
-    DEFAULT_CITY: process.env.WEATHER_DEFAULT_CITY || 'Ludhiana'
+    DEFAULT_CITY: process.env.WEATHER_DEFAULT_CITY || 'Ludhiana',
+    
+    // Cache and resilience settings
+    CACHE_TTL: parseInt(process.env.WEATHER_CACHE_TTL || '1800000'), // 30 minutes
+    FALLBACK_ENABLED: process.env.WEATHER_FALLBACK_ENABLED !== 'false',
+    BACKGROUND_REFRESH: process.env.WEATHER_BACKGROUND_REFRESH !== 'false'
   },
   
   // Application settings

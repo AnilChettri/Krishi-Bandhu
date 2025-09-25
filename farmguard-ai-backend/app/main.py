@@ -150,6 +150,13 @@ app.include_router(market.router, prefix="/market", tags=["Market"])
 app.include_router(crops.router, prefix="/crops", tags=["Crops"])
 app.include_router(soil_analysis.router, prefix="/soil", tags=["Soil Analysis"])
 
+# Import and include weather service
+try:
+    from app.api.weather_service import router as weather_service_router
+    app.include_router(weather_service_router, prefix="/api", tags=["Weather Service"])
+except ImportError:
+    logger.warning("Weather service not available")
+
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):

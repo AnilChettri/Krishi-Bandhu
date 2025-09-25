@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, Calendar, MapPin, AlertTriangle } from "lucide-react"
+import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, Calendar, MapPin, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import WeatherAlerts from "@/components/weather-alerts"
+import { apiResilienceService } from '@/lib/api-resilience'
+import { localStorageService, isOffline } from '@/lib/local-storage'
 
 interface WeatherData {
   date: string
@@ -57,22 +59,90 @@ export default function WeatherPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const [location, setLocation] = useState<{ lat: number; lon: number; city: string } | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [dataSource, setDataSource] = useState<string>('')
 
-  // Fetch weather data from our API
-  const fetchWeatherData = async () => {
+  // Get current location with fallbacks
+  const getCurrentLocation = async (): Promise<{ lat: number; lon: number; city: string }> => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/weather')
+      const locationResult = await apiResilienceService.getCurrentLocation()
+      return locationResult.data
+    } catch (error) {
+      console.warn('Failed to get location:', error)
+      // Default to Ludhiana, Punjab (major farming region)
+      return { lat: 30.9010, lon: 75.8573, city: 'Ludhiana' }
+    }
+  }
+
+  // Fetch weather data with resilient location handling
+  const fetchWeatherData = async (forceRefresh = false) => {
+    try {
+      setRefreshing(true)
+      
+      // Get location if we don't have it
+      let currentLocation = location
+      if (!currentLocation) {
+        currentLocation = await getCurrentLocation()
+        setLocation(currentLocation)
+      }
+
+      // Check if we're offline and have cached data
+      if (isOffline() && !forceRefresh) {
+        const cached = localStorageService.getBestWeatherData()
+        if (cached.data) {
+          setWeatherData({
+            success: true,
+            data: cached.data,
+            source: 'cache'
+          } as WeatherResponse)
+          setDataSource(`${cached.source} (${Math.round(cached.age / 60000)}min ago)`)
+          setLastRefresh(new Date())
+          setError(null)
+          return
+        }
+      }
+
+      // Fetch from API with location parameters
+      const url = `/api/weather?lat=${currentLocation.lat}&lon=${currentLocation.lon}${forceRefresh ? '&refresh=true' : ''}`
+      const response = await fetch(url)
       const data: WeatherResponse = await response.json()
       
       setWeatherData(data)
+      setDataSource(data.source || 'api')
       setLastRefresh(new Date())
       setError(null)
+      
+      // Cache the data for offline use
+      if (data.success && data.data) {
+        localStorageService.setWeatherData({
+          forecast: data.data.forecast,
+          alerts: data.data.alerts,
+          location: data.data.location,
+          lastUpdated: data.data.lastUpdated
+        })
+      }
+      
     } catch (err) {
       console.error('Failed to fetch weather data:', err)
-      setError('Failed to load weather data')
+      
+      // Try to use cached data as fallback
+      const cached = localStorageService.getBestWeatherData()
+      if (cached.data) {
+        setWeatherData({
+          success: false,
+          data: cached.data,
+          source: 'cache',
+          error: 'Using cached data - connection failed'
+        } as WeatherResponse)
+        setDataSource(`fallback (${Math.round(cached.age / 60000)}min old)`)
+        setError('Connection failed - showing cached data')
+      } else {
+        setError('Failed to load weather data and no cached data available')
+      }
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
@@ -197,23 +267,57 @@ export default function WeatherPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {/* Location */}
-        <div className="flex items-center gap-2 mb-6">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {weatherData?.data.location ? 
-              `${weatherData.data.location.name}, ${weatherData.data.location.country}` : 
-              'Location Unknown'
-            }
-          </span>
-          <Button variant="ghost" size="sm" className="text-xs">
-            Change Location
-          </Button>
-          {weatherData?.source && (
-            <Badge variant="outline" className="text-xs ml-2">
-              {weatherData.source === 'openweathermap' ? 'Live Data' : 'Mock Data'}
-            </Badge>
-          )}
+        {/* Location and Data Source */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              {weatherData?.data.location ? 
+                `${weatherData.data.location.name}, ${weatherData.data.location.country}` : 
+                location ? `${location.city}` :
+                'Location Unknown'
+              }
+            </span>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
+              setLocation(null)
+              fetchWeatherData(true)
+            }}>
+              📍 Update Location
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {weatherData?.source && (
+              <Badge variant="outline" className={`text-xs ${
+                weatherData.source === 'api' || weatherData.source === 'openweathermap' ? 'bg-green-50 text-green-700 border-green-200' :
+                weatherData.source === 'cache' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                weatherData.source === 'fallback' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                'bg-gray-50 text-gray-700 border-gray-200'
+              }`}>
+                {weatherData.source === 'api' || weatherData.source === 'openweathermap' ? '🟢 Live Data' :
+                 weatherData.source === 'cache' ? '💾 Cached Data' :
+                 weatherData.source === 'fallback' || weatherData.source === 'mock' ? '📋 Offline Data' :
+                 dataSource || 'Unknown Source'}
+              </Badge>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchWeatherData(true)}
+              disabled={refreshing}
+              className="text-xs"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            
+            {isOffline() && (
+              <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                📡 Offline
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Weather Alerts */}

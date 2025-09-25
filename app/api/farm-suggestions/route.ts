@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { API_CONFIG } from '@/lib/api-config'
+import { getPunjabCropsByFilter, getCurrentSeasonCrops, punjabCropDatabase, PunjabCropData } from '@/lib/punjab-crop-database'
 
 interface CropSuggestion {
   id: string
@@ -59,8 +60,8 @@ interface FarmSuggestionsResponse {
   error?: string
 }
 
-// Mock crop data for different regions and seasons
-function getMockFarmSuggestions(filters?: any): FarmSuggestionsResponse {
+// Punjab-specific farm suggestions with comprehensive agricultural data
+function getPunjabFarmSuggestions(filters?: any): FarmSuggestionsResponse {
   const currentDate = new Date()
   const currentMonth = currentDate.getMonth() + 1
   
@@ -71,287 +72,73 @@ function getMockFarmSuggestions(filters?: any): FarmSuggestionsResponse {
   } else if (currentMonth >= 10 && currentMonth <= 11) {
     currentSeason = 'Post-Kharif'
   }
+  
+  console.log(`🌾 Punjab Farm Suggestions for ${currentSeason} season with filters:`, filters)
 
-  const mockSuggestions: CropSuggestion[] = [
-    {
-      id: 'crop-001',
-      cropName: 'Rice',
-      variety: 'Basmati 370',
-      season: 'Kharif',
-      sowingTime: 'June-July',
-      harvestTime: 'October-November',
-      duration: 120,
-      expectedYield: 40,
-      yieldUnit: 'quintal/hectare',
-      profitability: {
-        investmentCost: 35000,
-        expectedRevenue: 100000,
-        profit: 65000,
-        profitMargin: 65,
-        roi: 185
-      },
-      suitability: {
-        soilType: ['Clay', 'Loamy'],
-        climateConditions: ['High humidity', 'Monsoon'],
-        waterRequirement: 'high',
-        difficulty: 'medium',
-        suitabilityScore: 85
-      },
-      marketDemand: {
-        currentPrice: 2500,
-        priceUnit: '₹/quintal',
-        demandLevel: 'high',
-        marketTrend: 'stable'
-      },
-      requirements: {
-        seedQuantity: '25-30 kg/hectare',
-        fertilizer: ['NPK 10:26:26', 'Urea', 'DAP'],
-        irrigation: 'Flood irrigation required',
-        laborHours: 200
-      },
-      tips: [
-        'Transplant 21-day old seedlings',
-        'Maintain 2-3 cm water level',
-        'Apply fertilizer in split doses',
-        'Monitor for brown plant hopper'
-      ],
-      risks: [
-        'Blast disease in humid conditions',
-        'Water logging damage',
-        'Price volatility',
-        'Storage pest issues'
-      ],
-      benefits: [
-        'Stable market demand',
-        'Government MSP support',
-        'Good export potential',
-        'Multiple varieties available'
-      ]
+  // Get Punjab crop suggestions using the comprehensive database
+  const punjabCrops = getPunjabCropsByFilter({
+    season: filters?.season || currentSeason,
+    soilType: filters?.soilType,
+    waterRequirement: filters?.waterRequirement,
+    difficulty: filters?.difficulty,
+    maxInvestment: filters?.maxInvestment,
+    category: filters?.category,
+    zone: filters?.zone
+  })
+  
+  // Convert Punjab crop data to CropSuggestion format for compatibility
+  const convertedSuggestions: CropSuggestion[] = punjabCrops.map((crop: PunjabCropData) => ({
+    id: crop.id,
+    cropName: crop.cropName,
+    variety: crop.variety,
+    season: crop.season,
+    sowingTime: crop.sowingPeriod.optimal,
+    harvestTime: `${crop.harvestPeriod.start} - ${crop.harvestPeriod.end}`,
+    duration: crop.duration,
+    expectedYield: crop.expectedYield.average,
+    yieldUnit: crop.expectedYield.unit,
+    profitability: {
+      investmentCost: crop.profitability.investmentCost,
+      expectedRevenue: crop.profitability.expectedRevenue,
+      profit: crop.profitability.profit,
+      profitMargin: crop.profitability.profitMargin,
+      roi: crop.profitability.roi
     },
-    {
-      id: 'crop-002',
-      cropName: 'Wheat',
-      variety: 'HD 2967',
-      season: 'Rabi',
-      sowingTime: 'November-December',
-      harvestTime: 'March-April',
-      duration: 120,
-      expectedYield: 45,
-      yieldUnit: 'quintal/hectare',
-      profitability: {
-        investmentCost: 28000,
-        expectedRevenue: 90000,
-        profit: 62000,
-        profitMargin: 68.9,
-        roi: 221
-      },
-      suitability: {
-        soilType: ['Loamy', 'Sandy loam'],
-        climateConditions: ['Cool dry winters'],
-        waterRequirement: 'medium',
-        difficulty: 'easy',
-        suitabilityScore: 90
-      },
-      marketDemand: {
-        currentPrice: 2000,
-        priceUnit: '₹/quintal',
-        demandLevel: 'high',
-        marketTrend: 'stable'
-      },
-      requirements: {
-        seedQuantity: '100-125 kg/hectare',
-        fertilizer: ['NPK 12:32:16', 'Urea'],
-        irrigation: '4-5 irrigations required',
-        laborHours: 150
-      },
-      tips: [
-        'Sow at proper depth (3-4 cm)',
-        'Maintain line spacing 22.5 cm',
-        'First irrigation after 20-25 days',
-        'Harvest at proper maturity'
-      ],
-      risks: [
-        'Late sowing reduces yield',
-        'Rust diseases',
-        'Hail damage',
-        'Market price fluctuations'
-      ],
-      benefits: [
-        'Government procurement',
-        'Easy cultivation',
-        'Good storage life',
-        'Multiple end uses'
-      ]
+    suitability: {
+      soilType: crop.suitability.soilTypes,
+      climateConditions: crop.suitability.climateConditions,
+      waterRequirement: crop.suitability.waterRequirement,
+      difficulty: crop.suitability.difficulty,
+      suitabilityScore: crop.suitability.suitabilityScore
     },
-    {
-      id: 'crop-003',
-      cropName: 'Maize',
-      variety: 'NK 6240',
-      season: 'Kharif',
-      sowingTime: 'June-July',
-      harvestTime: 'October',
-      duration: 90,
-      expectedYield: 60,
-      yieldUnit: 'quintal/hectare',
-      profitability: {
-        investmentCost: 25000,
-        expectedRevenue: 102000,
-        profit: 77000,
-        profitMargin: 75.5,
-        roi: 308
-      },
-      suitability: {
-        soilType: ['Well-drained', 'Sandy loam', 'Loamy'],
-        climateConditions: ['Warm humid', 'Moderate rainfall'],
-        waterRequirement: 'medium',
-        difficulty: 'easy',
-        suitabilityScore: 88
-      },
-      marketDemand: {
-        currentPrice: 1700,
-        priceUnit: '₹/quintal',
-        demandLevel: 'high',
-        marketTrend: 'rising'
-      },
-      requirements: {
-        seedQuantity: '18-25 kg/hectare',
-        fertilizer: ['Complex fertilizer', 'Urea'],
-        irrigation: '2-3 irrigations if rain fails',
-        laborHours: 120
-      },
-      tips: [
-        'Plant spacing: 75x25 cm',
-        'Side dress nitrogen at knee height',
-        'Control weeds early',
-        'Harvest at 15-18% moisture'
-      ],
-      risks: [
-        'Stem borer attack',
-        'Fall army worm',
-        'Storage moisture issues',
-        'Wild animal damage'
-      ],
-      benefits: [
-        'Short duration crop',
-        'Multiple uses (food, feed, industrial)',
-        'Good market demand',
-        'Mechanization friendly'
-      ]
+    marketDemand: {
+      currentPrice: crop.marketInfo.currentPrice.average,
+      priceUnit: crop.marketInfo.currentPrice.unit,
+      demandLevel: crop.marketInfo.demandLevel,
+      marketTrend: crop.marketInfo.marketTrend
     },
-    {
-      id: 'crop-004',
-      cropName: 'Tomato',
-      variety: 'Arka Rakshak',
-      season: 'Rabi',
-      sowingTime: 'October-November',
-      harvestTime: 'February-April',
-      duration: 110,
-      expectedYield: 500,
-      yieldUnit: 'quintal/hectare',
-      profitability: {
-        investmentCost: 45000,
-        expectedRevenue: 750000,
-        profit: 705000,
-        profitMargin: 94,
-        roi: 1567
-      },
-      suitability: {
-        soilType: ['Well-drained loamy', 'Sandy loam'],
-        climateConditions: ['Cool dry weather'],
-        waterRequirement: 'medium',
-        difficulty: 'medium',
-        suitabilityScore: 75
-      },
-      marketDemand: {
-        currentPrice: 1500,
-        priceUnit: '₹/quintal',
-        demandLevel: 'high',
-        marketTrend: 'rising'
-      },
-      requirements: {
-        seedQuantity: '200-250 grams/hectare',
-        fertilizer: ['FYM', 'NPK', 'Micronutrients'],
-        irrigation: 'Drip irrigation recommended',
-        laborHours: 300
-      },
-      tips: [
-        'Transplant 4-5 week old seedlings',
-        'Provide support with stakes',
-        'Regular pruning of suckers',
-        'Harvest at breaker stage for market'
-      ],
-      risks: [
-        'Bacterial wilt',
-        'Fruit cracking',
-        'Price volatility',
-        'Post-harvest losses'
-      ],
-      benefits: [
-        'Very high profitability',
-        'Year-round demand',
-        'Short duration',
-        'Export potential'
-      ]
+    requirements: {
+      seedQuantity: crop.requirements.seedRate.quantity,
+      fertilizer: crop.requirements.fertilizers.map(f => f.name),
+      irrigation: crop.requirements.irrigation.method,
+      laborHours: crop.requirements.labor.totalHours
     },
-    {
-      id: 'crop-005',
-      cropName: 'Onion',
-      variety: 'Nasik Red',
-      season: 'Rabi',
-      sowingTime: 'December-January',
-      harvestTime: 'April-May',
-      duration: 120,
-      expectedYield: 250,
-      yieldUnit: 'quintal/hectare',
-      profitability: {
-        investmentCost: 40000,
-        expectedRevenue: 375000,
-        profit: 335000,
-        profitMargin: 89.3,
-        roi: 837
-      },
-      suitability: {
-        soilType: ['Well-drained', 'Sandy loam', 'Alluvial'],
-        climateConditions: ['Cool growing season', 'Dry harvesting period'],
-        waterRequirement: 'medium',
-        difficulty: 'medium',
-        suitabilityScore: 80
-      },
-      marketDemand: {
-        currentPrice: 1500,
-        priceUnit: '₹/quintal',
-        demandLevel: 'high',
-        marketTrend: 'stable'
-      },
-      requirements: {
-        seedQuantity: '8-10 kg/hectare',
-        fertilizer: ['FYM', 'NPK 19:19:19', 'Sulphur'],
-        irrigation: 'Light frequent irrigations',
-        laborHours: 250
-      },
-      tips: [
-        'Transplant at 6-7 weeks',
-        'Maintain proper spacing',
-        'Stop irrigation before harvest',
-        'Cure properly for storage'
-      ],
-      risks: [
-        'Purple blotch disease',
-        'Thrips infestation',
-        'Storage losses',
-        'Price crashes during peak season'
-      ],
-      benefits: [
-        'High market value',
-        'Good storage life',
-        'Export opportunities',
-        'Essential commodity'
-      ]
-    }
-  ]
+    tips: crop.practicalAdvice.tips,
+    risks: [
+      ...crop.risks.diseases.map(d => d.name + ': ' + d.symptoms),
+      ...crop.risks.pests.map(p => p.name + ': ' + p.damage),
+      ...crop.risks.weatherRisks,
+      ...crop.risks.marketRisks
+    ],
+    benefits: [
+      ...crop.benefits.economic,
+      ...crop.benefits.environmental,
+      ...crop.benefits.social
+    ]
+  }))
 
-  // Filter suggestions based on current season and other criteria
-  let filteredSuggestions = mockSuggestions
+  // Additional filtering logic
+  let filteredSuggestions = convertedSuggestions
 
   if (filters?.season) {
     filteredSuggestions = filteredSuggestions.filter(crop => 
