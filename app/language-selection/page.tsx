@@ -23,14 +23,14 @@ export default function LanguageSelectionPage() {
     setLanguage(selectedLanguage)
     // Store that language selection is complete
     localStorage.setItem('language-selected', 'true')
-    // Redirect to sign in page
-    router.push('/auth/signin')
+    // Redirect to login page
+    router.push('/login')
   }
 
   const handleSkip = () => {
     setLanguage("en") // Default to English
     localStorage.setItem('language-selected', 'true')
-    router.push('/auth/signin')
+    router.push('/login')
   }
 
   const languageOptions = Object.entries(languageDetails).map(([code, details]) => ({

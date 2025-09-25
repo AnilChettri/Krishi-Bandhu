@@ -41,7 +41,8 @@ export default function VoiceInput({
 
   // Check browser support on component mount
   useEffect(() => {
-    const { hasRecognition } = isBrowserVoiceSupported()
+    const browserSupport = isBrowserVoiceSupported()
+    const hasRecognition = typeof browserSupport === 'object' ? browserSupport.hasRecognition : false
     setIsSupported(hasRecognition)
 
     // Check microphone permission
@@ -253,7 +254,8 @@ export function VoiceOutput({
 
   // Check browser support
   useEffect(() => {
-    const { hasSynthesis } = isBrowserVoiceSupported()
+    const browserSupport = isBrowserVoiceSupported()
+    const hasSynthesis = typeof browserSupport === 'object' ? browserSupport.hasSynthesis : false
     setIsSupported(hasSynthesis)
   }, [])
 

@@ -27,8 +27,8 @@ export default function HomePage() {
     }
     
     if (!userAuthenticated) {
-      // Language selected but not authenticated - redirect to sign in
-      router.push('/auth/signin')
+      // Language selected but not authenticated - redirect to login
+      router.push('/login')
       return
     }
     
@@ -191,7 +191,7 @@ export default function HomePage() {
             />
           </div>
           
-          <Link href="/auth/farmer/signup">
+          <Link href="/login">
             <Button variant="outline" className="w-full border-green-600 text-green-600 hover:bg-green-50 py-4 text-lg font-semibold rounded-lg">
               {t('signUp')}
             </Button>

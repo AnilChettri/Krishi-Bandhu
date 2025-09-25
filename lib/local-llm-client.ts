@@ -341,7 +341,7 @@ const callAIBackend = async (request: LLMRequest): Promise<LLMResponse> => {
 
 // Main client function with fallback logic
 export const callLocalLLM = async (request: LLMRequest): Promise<LLMResponse> => {
-  const providers = LOCAL_AI_CONFIG.PROVIDER.FALLBACK_ORDER as AIProvider[]
+  const providers = LOCAL_AI_CONFIG.PROVIDER_PRIORITY.FALLBACK_ORDER as AIProvider[]
   let lastError: Error | null = null
 
   // Try each provider in order

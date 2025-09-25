@@ -233,7 +233,7 @@ export async function checkLocalAIHealth(): Promise<boolean> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000)
     
-    const response = await fetch(`${LOCAL_AI_CONFIG.BASE_URL}${LOCAL_AI_CONFIG.ENDPOINTS.HEALTH}`, {
+    const response = await fetch(`${LOCAL_AI_CONFIG.LOCALAI.BASE_URL}${LOCAL_AI_CONFIG.LOCALAI.ENDPOINTS.HEALTH}`, {
       method: 'GET',
       signal: controller.signal
     })
@@ -248,12 +248,12 @@ export async function checkLocalAIHealth(): Promise<boolean> {
 
 // Helper function to call local AI with fallback
 export async function callLocalAI(endpoint: string, data: any, options: RequestInit = {}): Promise<any> {
-  const url = `${LOCAL_AI_CONFIG.BASE_URL}${endpoint}`
+  const url = `${LOCAL_AI_CONFIG.LOCALAI.BASE_URL}${endpoint}`
   
   for (let attempt = 1; attempt <= LOCAL_AI_CONFIG.FALLBACK.RETRY_ATTEMPTS; attempt++) {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), LOCAL_AI_CONFIG.TIMEOUT)
+      const timeoutId = setTimeout(() => controller.abort(), LOCAL_AI_CONFIG.LOCALAI.TIMEOUT)
       
       const requestOptions: RequestInit = {
         method: 'POST',

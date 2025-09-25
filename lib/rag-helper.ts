@@ -411,7 +411,7 @@ export async function createRAGPrompt(
     return {
       enhancedPrompt: userQuery,
       context: createFallbackContext(userQuery, options.language || 'en'),
-      metadata: { error: error.message }
+      metadata: { error: error instanceof Error ? error.message : String(error) }
     }
   }
 }

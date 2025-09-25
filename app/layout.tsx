@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Suspense } from "react"
 import { LanguageProvider } from "@/contexts/language-context"
+import ErrorBoundary from "@/components/error-boundary"
 
 export const metadata: Metadata = {
   title: "Krishi Bandhu - Smart Crop Advisory System",
@@ -80,10 +81,12 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>
-          <LanguageProvider>{children}</LanguageProvider>
-          {/* <PWAInstall /> */}
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <LanguageProvider>{children}</LanguageProvider>
+            {/* <PWAInstall /> */}
+          </Suspense>
+        </ErrorBoundary>
         <Analytics />
         <script
           dangerouslySetInnerHTML={{

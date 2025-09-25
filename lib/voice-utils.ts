@@ -1,5 +1,61 @@
 import { Language } from './i18n'
 
+// Extend global Window interface for speech recognition types
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition
+    webkitSpeechRecognition: typeof SpeechRecognition
+  }
+}
+
+// SpeechRecognition types if not available
+interface SpeechRecognitionEvent {
+  resultIndex: number
+  results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string
+  message: string
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number
+  readonly isFinal: boolean
+  item(index: number): SpeechRecognitionAlternative
+  [index: number]: SpeechRecognitionAlternative
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number
+  item(index: number): SpeechRecognitionResult
+  [index: number]: SpeechRecognitionResult
+}
+
+interface SpeechRecognitionAlternative {
+  readonly transcript: string
+  readonly confidence: number
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  maxAlternatives: number
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null
+  start(): void
+  stop(): void
+  abort(): void
+}
+
+declare var SpeechRecognition: {
+  prototype: SpeechRecognition
+  new(): SpeechRecognition
+}
+
 // Language-specific voice configurations
 export const VOICE_CONFIG = {
   en: {

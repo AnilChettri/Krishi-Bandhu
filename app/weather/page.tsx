@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, Calendar, MapPin } from "lucide-react"
+import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, Calendar, MapPin, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import WeatherAlerts from "@/components/weather-alerts"
 

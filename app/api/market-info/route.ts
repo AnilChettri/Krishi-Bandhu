@@ -204,8 +204,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET specific crop prices
-export async function getCropPrice(cropName: string): Promise<MarketPrice[]> {
+// Helper function to get specific crop prices (internal use only)
+async function getCropPrice(cropName: string): Promise<MarketPrice[]> {
   const mockData = getMockMarketData()
   return mockData.data.prices.filter(p =>
     p.crop.toLowerCase().includes(cropName.toLowerCase())

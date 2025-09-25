@@ -8,8 +8,11 @@ export async function POST(request: NextRequest) {
   const performanceHandler = createPerformanceMiddleware(endpoint)
   
   return performanceHandler(async () => {
+    let language = 'en' // Default language
     try {
-      const { message, language = 'en' } = await request.json()
+      const requestBody = await request.json()
+      const { message } = requestBody
+      language = requestBody.language || 'en'
 
       if (!message || typeof message !== 'string') {
         return NextResponse.json(
@@ -22,10 +25,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Input sanitization and validation
-      const sanitizedMessage = message.slice(0, API_CONFIG.SECURITY.MAX_INPUT_LENGTH)
+      const sanitizedMessage = message.slice(0, LOCAL_AI_CONFIG.SECURITY.MAX_INPUT_LENGTH)
       
       // Check for blocked patterns
-      const hasBlockedPattern = API_CONFIG.SECURITY.BLOCKED_PATTERNS.some(
+      const hasBlockedPattern = LOCAL_AI_CONFIG.SECURITY.BLOCKED_PATTERNS.some(
         (pattern: RegExp) => pattern.test(sanitizedMessage)
       )
       

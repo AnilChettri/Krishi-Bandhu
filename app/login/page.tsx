@@ -152,7 +152,7 @@ export default function LoginPage() {
             {/* Footer Links */}
             <div className="flex items-center justify-center text-sm pt-4">
               <span className="text-gray-600">{t('needAccount')} </span>
-              <Link href="/auth/farmer/signup" className="ml-1 text-green-600 hover:text-green-700 font-medium">
+              <Link href="/onboarding" className="ml-1 text-green-600 hover:text-green-700 font-medium">
                 {t('signUp')}
               </Link>
             </div>
