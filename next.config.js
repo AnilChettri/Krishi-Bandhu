@@ -20,7 +20,7 @@ const nextConfig = {
 
   // PWA and performance optimizations
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Disabled due to critters module issue
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 
