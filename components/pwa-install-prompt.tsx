@@ -88,7 +88,7 @@ export default function PWAInstallPrompt() {
               <Smartphone className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm">Install FarmGuard</h3>
+              <h3 className="font-semibold text-sm">Install Krishi Bandhu</h3>
               <p className="text-xs text-gray-600">Get app-like experience</p>
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function PWAInstallPrompt() {
         ) : (
           <div className="space-y-2">
             <p className="text-xs text-gray-600">
-              Install FarmGuard on your phone for faster access and offline features
+              Install Krishi Bandhu on your phone for faster access and offline features
             </p>
             <div className="flex gap-2">
               <Button onClick={handleInstallClick} size="sm" className="flex-1 bg-green-600 hover:bg-green-700">

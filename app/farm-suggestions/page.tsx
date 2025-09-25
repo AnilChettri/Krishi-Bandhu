@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import FarmGuardLayout from "@/components/farmguard-layout"
+import KrishiBandhuLayout from "@/components/krishi-bandhu-layout"
 import { Calculator, Lightbulb, TrendingUp, Calendar, Sprout, Clock, DollarSign, BarChart3 } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 
@@ -105,7 +105,7 @@ export default function FarmSuggestions() {
   }
 
   return (
-    <FarmGuardLayout>
+    <KrishiBandhuLayout>
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-6">
           {/* Header */}
@@ -294,6 +294,6 @@ export default function FarmSuggestions() {
           </div>
         </main>
       </div>
-    </FarmGuardLayout>
+    </KrishiBandhuLayout>
   )
 }

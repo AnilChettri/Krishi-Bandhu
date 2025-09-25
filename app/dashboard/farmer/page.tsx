@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
-import FarmGuardLayout from "@/components/farmguard-layout"
+import KrishiBandhuLayout from "@/components/krishi-bandhu-layout"
 import { Calculator, Calendar, TrendingUp, CloudRain, Sprout, Bug, Thermometer, Droplets, Wind, Sun, Bot, BarChart3, HelpCircle, TestTube, Store, Cloud } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import FarmerGuide, { farmerGuideSteps } from "@/components/farmer-guide"
@@ -71,7 +71,7 @@ export default function FarmerDashboard() {
   }
 
   return (
-    <FarmGuardLayout>
+    <KrishiBandhuLayout>
       <div className="min-h-screen bg-gray-50">
 
         <main className="container mx-auto px-4 py-6">
@@ -97,7 +97,7 @@ export default function FarmerDashboard() {
                 variant="outline" 
                 onClick={() => {
                   if (typeof window !== 'undefined') {
-                    localStorage.removeItem('farmguard-guide-completed')
+                    localStorage.removeItem('krishi-bandhu-guide-completed')
                   }
                 }}
                 className="flex items-center gap-2 text-sm"
@@ -547,6 +547,6 @@ export default function FarmerDashboard() {
           </div>
         </main>
       </div>
-    </FarmGuardLayout>
+    </KrishiBandhuLayout>
   )
 }

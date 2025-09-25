@@ -1,15 +1,15 @@
-# 🌾 FARMGUARD - Development Analysis & Readiness Assessment
+# 🌾 Krishi Bandhu - Development Analysis & Readiness Assessment
 
 ## 📋 Project Overview
 
-**FARMGUARD** is a Progressive Web Application (PWA) designed for Smart India Hackathon 2025 (SIH25010), aimed at empowering small and marginal farmers with:
+**Krishi Bandhu** is a Progressive Web Application (PWA) designed for Smart India Hackathon 2025 (SIH25010), aimed at empowering small and marginal farmers with:
 
 - 🤖 AI-powered farming assistance
 - 🌤️ Weather forecasting and alerts  
 - 📈 Market price insights
 - 🌱 Crop suggestions and planning
 - 🗣️ Voice input/output support
-- 🌐 Multi-language support (5 Indian languages)
+- 🌐 Multi-language support (3 Indian languages: English, Hindi, Punjabi)
 
 ## 🏗️ Technical Architecture
 
@@ -24,7 +24,7 @@
 
 ### Key Features Implemented
 - ✅ PWA configuration (manifest.json, service worker)
-- ✅ Multi-language context (English, Hindi, Kannada, Punjabi, Tamil)
+- ✅ Multi-language context (English, Hindi, Punjabi)
 - ✅ Responsive UI components
 - ✅ Voice input/output capabilities
 - ✅ Image upload for crop analysis
@@ -52,7 +52,7 @@
 
 3. **Language Support**
    - Context-based i18n implementation
-   - 5 Indian languages configured
+   - 3 Indian languages configured
    - Language switching functionality
 
 4. **PWA Features**

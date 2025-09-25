@@ -1,4 +1,4 @@
-const CACHE_NAME = "farmguard-v1"
+const CACHE_NAME = "krishibandhu-v1"
 const OFFLINE_URL = "/offline"
 
 // Essential files to cache for offline functionality

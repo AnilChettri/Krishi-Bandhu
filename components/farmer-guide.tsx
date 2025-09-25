@@ -29,7 +29,7 @@ export default function FarmerGuide({ steps, onComplete }: FarmerGuideProps) {
 
   useEffect(() => {
     // Show guide for first-time users
-    const hasSeenGuide = localStorage.getItem('farmguard-guide-completed')
+    const hasSeenGuide = localStorage.getItem('krishi-bandhu-guide-completed')
     if (!hasSeenGuide) {
       setTimeout(() => setShowGuide(true), 1000)
     }
@@ -78,14 +78,14 @@ export default function FarmerGuide({ steps, onComplete }: FarmerGuideProps) {
   const completeGuide = () => {
     stopSpeech()
     setShowGuide(false)
-    localStorage.setItem('farmguard-guide-completed', 'true')
+    localStorage.setItem('krishi-bandhu-guide-completed', 'true')
     onComplete?.()
   }
 
   const skipGuide = () => {
     stopSpeech()
     setShowGuide(false)
-    localStorage.setItem('farmguard-guide-completed', 'true')
+    localStorage.setItem('krishi-bandhu-guide-completed', 'true')
   }
 
   const toggleVoice = () => {
@@ -193,10 +193,10 @@ export const farmerGuideSteps: GuideStep[] = [
   {
     id: 'welcome',
     target: 'body',
-    title: 'Welcome to FarmGuard! 🌱',
+    title: 'Welcome to Krishi Bandhu! 🌱',
     content: 'I will help you understand how to use this farming assistant. This tool will help you make better farming decisions.',
     position: 'bottom',
-    voiceText: 'Welcome to FarmGuard! I will guide you through this farming application step by step.'
+    voiceText: 'Welcome to Krishi Bandhu! I will guide you through this farming application step by step.'
   },
   {
     id: 'weather',

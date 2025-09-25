@@ -9,7 +9,6 @@ import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { type Language } from "@/lib/i18n"
 import VisualGuide, { VisualPointer } from "@/components/visual-guide"
-import FarmerTutorial from "@/components/farmer-tutorial"
 
 export default function HomePage() {
   const { language, setLanguage, t } = useLanguage()
@@ -46,9 +45,7 @@ export default function HomePage() {
   const languageOptions: { code: Language; name: string; nativeName: string }[] = [
     { code: "en", name: "English", nativeName: "English" },
     { code: "hi", name: "Hindi", nativeName: "हिंदी" },
-    { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
     { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
-    { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
   ]
 
   return (
@@ -62,7 +59,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sprout className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">FarmGuard</h1>
+              <h1 className="text-2xl font-bold">Krishi Bandhu</h1>
             </div>
             <div className="relative">
               <Button 
@@ -204,10 +201,10 @@ export default function HomePage() {
         {/* How to Use - Tutorial for Farmers */}
         <div className="mt-16 max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">How to Use FarmGuard</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">How to Use Krishi Bandhu</h2>
             <p className="text-gray-600">Simple steps to get started / शुरू करने के लिए आसान कदम</p>
           </div>
-          <FarmerTutorial />
+          {/* Tutorial content has been integrated into the farmer guide component */}
         </div>
 
         {/* Features Preview */}

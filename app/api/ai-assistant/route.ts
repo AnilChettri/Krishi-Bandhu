@@ -1,79 +1,201 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { API_CONFIG } from '@/lib/api-config'
+import { API_CONFIG, LOCAL_AI_CONFIG } from '@/lib/api-config'
+import { callLocalLLM, checkLocalAIHealth, checkOllamaHealth, checkAIBackendHealth } from '@/lib/local-llm-client'
+import { createPerformanceMiddleware, trackLLMRequest, trackProviderHealth, trackFeatureUsage } from '@/lib/monitoring'
 
 export async function POST(request: NextRequest) {
-  try {
-    const { message, language = 'en' } = await request.json()
+  const endpoint = 'ai-assistant'
+  const performanceHandler = createPerformanceMiddleware(endpoint)
+  
+  return performanceHandler(async () => {
+    try {
+      const { message, language = 'en' } = await request.json()
 
-    if (!message) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
+      if (!message || typeof message !== 'string') {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Message is required and must be a string' 
+          },
+          { status: 400 }
+        )
+      }
+
+      // Input sanitization and validation
+      const sanitizedMessage = message.slice(0, API_CONFIG.SECURITY.MAX_INPUT_LENGTH)
+      
+      // Check for blocked patterns
+      const hasBlockedPattern = API_CONFIG.SECURITY.BLOCKED_PATTERNS.some(
+        (pattern: RegExp) => pattern.test(sanitizedMessage)
       )
-    }
-
-    // Check if OpenAI API key is available
-    if (!API_CONFIG.OPENAI.API_KEY) {
-      // Fallback to mock response for development
-      return NextResponse.json({
-        response: getMockFarmingResponse(message, language),
-        source: 'mock'
-      })
-    }
-
-    // Create farming-focused system prompt
-    const systemPrompt = `You are an AI farming assistant for Indian farmers. Provide practical, actionable advice about:
-    - Crop cultivation and care
-    - Pest and disease management  
-    - Weather-based farming decisions
-    - Market timing and pricing
-    - Sustainable farming practices
+      
+      if (hasBlockedPattern) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Message contains blocked content' 
+          },
+          { status: 400 }
+        )
+      }
+      
+      // Track feature usage
+      trackFeatureUsage('ai_assistant', 'chat')
     
-    Keep responses simple, practical, and relevant to Indian agriculture. If the user asks in Hindi or other Indian languages, respond in that language.
-    
-    User's language preference: ${language}`
+    // Try Local AI providers first if enabled
+    if (LOCAL_AI_CONFIG.ENABLED) {
+      try {
+        console.log('🤖 Using Local AI providers for farming assistance...')
+        
+        const startTime = Date.now()
+        const localAIResponse = await callLocalLLM({
+          prompt: sanitizedMessage,
+          language: language,
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+        
+        const responseTime = Date.now() - startTime
+        
+        // Track LLM request metrics
+        trackLLMRequest(localAIResponse.source, localAIResponse.model, responseTime, false)
+        
+        // Track provider health
+        trackProviderHealth(localAIResponse.source, true, responseTime)
 
-    const response = await fetch(`${API_CONFIG.OPENAI.BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_CONFIG.OPENAI.API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: API_CONFIG.OPENAI.MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        max_tokens: API_CONFIG.OPENAI.MAX_TOKENS,
-        temperature: API_CONFIG.OPENAI.TEMPERATURE
-      })
-    })
+        // Log performance metrics
+        console.log(`✅ Local AI responded via ${localAIResponse.source} in ${responseTime}ms`)
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`)
+        return NextResponse.json({
+          success: true,
+          response: localAIResponse.content,
+          language: localAIResponse.language,
+          source: localAIResponse.source,
+          model: localAIResponse.model,
+          response_time: localAIResponse.response_time,
+          tokens_used: localAIResponse.tokens_used,
+          confidence: localAIResponse.confidence,
+          metadata: localAIResponse.metadata,
+          timestamp: new Date().toISOString()
+        })
+
+      } catch (error) {
+        console.error('❌ All local AI providers failed:', error)
+        
+        // Track provider failure
+        trackProviderHealth('localai', false)
+        
+        // Continue to external providers as fallback
+        console.log('⚠️ Falling back to external AI providers...')
+      }
     }
 
-    const data = await response.json()
-    const aiResponse = data.choices[0]?.message?.content || 'Sorry, I could not generate a response.'
+    // Try OpenAI if local AI failed and API key is available
+    if (API_CONFIG.OPENAI.API_KEY) {
+      try {
+        console.log('🌐 Using OpenAI API...')
+        
+        const startTime = Date.now()
+        
+        const systemPrompt = `You are an AI farming assistant for Indian farmers. Provide practical, actionable advice about:
+        - Crop cultivation and care
+        - Pest and disease management  
+        - Weather-based farming decisions
+        - Market timing and pricing
+        - Sustainable farming practices
+        
+        Keep responses simple, practical, and relevant to Indian agriculture. If the user asks in Hindi or other Indian languages, respond in that language.
+        
+        User's language preference: ${language}`
 
+        const response = await fetch(`${API_CONFIG.OPENAI.BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_CONFIG.OPENAI.API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: API_CONFIG.OPENAI.MODEL,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: sanitizedMessage }
+            ],
+            max_tokens: API_CONFIG.OPENAI.MAX_TOKENS,
+            temperature: API_CONFIG.OPENAI.TEMPERATURE
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+        const aiResponse = data.choices[0]?.message?.content || 'Sorry, I could not generate a response.'
+        
+        const responseTime = Date.now() - startTime
+        
+        // Track LLM request metrics
+        trackLLMRequest('openai', API_CONFIG.OPENAI.MODEL, responseTime, false)
+        trackProviderHealth('openai', true, responseTime)
+
+        return NextResponse.json({
+          success: true,
+          response: aiResponse,
+          language: language,
+          source: 'openai',
+          model: API_CONFIG.OPENAI.MODEL,
+          response_time: responseTime,
+          timestamp: new Date().toISOString()
+        })
+
+      } catch (error) {
+        console.error('❌ OpenAI API failed:', error)
+        
+        // Track provider failure
+        trackProviderHealth('openai', false)
+      }
+    }
+
+    // Final fallback to mock response
+    console.log('🔄 Using mock response as final fallback...')
+    
+    const mockResponse = getMockFarmingResponse(sanitizedMessage, language)
+    
+    // Track fallback usage
+    trackLLMRequest('mock', 'fallback', 0, false)
+    
     return NextResponse.json({
-      response: aiResponse,
-      source: 'openai'
+      success: true,
+      response: mockResponse,
+      language: language,
+      source: 'mock',
+      model: 'fallback',
+      timestamp: new Date().toISOString(),
+      warning: 'Using fallback response - consider setting up local AI or external API keys'
     })
 
   } catch (error) {
-    console.error('AI Assistant error:', error)
+    console.error('❌ AI Assistant critical error:', error)
     
-    // Fallback to mock response on error
-    const { message, language = 'en' } = await request.json().catch(() => ({ message: '', language: 'en' }))
+    // Track critical error
+    trackLLMRequest('system', 'error', 0, true)
+    
+    // Emergency fallback - use the language from the request or default to 'en'
+    const responseLanguage = language || 'en'
+    const emergencyResponse = {
+      en: "I'm temporarily unable to provide assistance. Please try again in a moment, or contact your local agricultural extension office for immediate help.",
+      hi: "मैं अस्थायी रूप से सहायता प्रदान करने में असमर्थ हूँ। कृपया एक क्षण में फिर से कोशिश करें, या तत्काल सहायता के लिए अपने स्थानीय कृषि विस्तार कार्यालय से संपर्क करें।"
+    }
     
     return NextResponse.json({
-      response: getMockFarmingResponse(message, language),
-      source: 'fallback',
-      error: 'Using fallback response due to API error'
-    })
+      success: false,
+      error: 'Service temporarily unavailable',
+      response: emergencyResponse[responseLanguage as keyof typeof emergencyResponse] || emergencyResponse.en,
+      source: 'emergency_fallback',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
   }
+  })
 }
 
 // Mock farming responses for development/fallback

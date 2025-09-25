@@ -10,7 +10,7 @@ import { Bot, Camera, Send, ArrowLeft, Loader2, User } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { ChatLoadingMessage, LoadingButton } from "@/components/loading"
-import FarmGuardLayout from "@/components/farmguard-layout"
+import KrishiBandhuLayout from "@/components/krishi-bandhu-layout"
 import VoiceInput, { VoiceOutput } from "@/components/voice-input"
 
 interface Message {
@@ -139,7 +139,7 @@ export default function AIAssistantPage() {
 
 
   return (
-    <FarmGuardLayout>
+    <KrishiBandhuLayout>
       <div className="min-h-screen bg-gray-50 flex flex-col">
 
       {/* Header Section */}
@@ -263,6 +263,6 @@ export default function AIAssistantPage() {
         </div>
       </div>
       </div>
-    </FarmGuardLayout>
+    </KrishiBandhuLayout>
   )
 }

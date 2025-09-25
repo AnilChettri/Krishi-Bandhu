@@ -70,7 +70,7 @@ export default function LoginPage() {
               </Button>
             </Link>
             <Sprout className="h-6 w-6" />
-            <span className="font-semibold">FarmGuard</span>
+            <span className="font-semibold">Krishi Bandhu</span>
           </div>
         </div>
       </header>

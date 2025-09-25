@@ -1,9 +1,7 @@
 export const languages = {
   en: "English",
   hi: "हिंदी",
-  kn: "ಕನ್ನಡ",
   pa: "ਪੰਜਾਬੀ",
-  ta: "தமிழ்",
 } as const
 
 export type Language = keyof typeof languages
@@ -11,7 +9,7 @@ export type Language = keyof typeof languages
 export const translations = {
   en: {
     // Auth & Navigation
-    welcome: "Welcome to FarmGuard",
+    welcome: "Welcome to Krishi Bandhu",
     signInToContinue: "Sign in to continue",
     continueWithGoogle: "Continue with Google",
     email: "Email",
@@ -87,7 +85,7 @@ export const translations = {
   },
   hi: {
     // Auth & Navigation
-    welcome: "फार्मगार्ड में आपका स्वागत है",
+    welcome: "कृषि बंधु में आपका स्वागत है",
     signInToContinue: "जारी रखने के लिए साइन इन करें",
     continueWithGoogle: "Google के साथ जारी रखें",
     email: "ईमेल",
@@ -161,85 +159,9 @@ export const translations = {
     cancel: "रद्द करें",
     continue: "जारी रखें",
   },
-  kn: {
-    // Auth & Navigation
-    welcome: "ಫಾರ್ಮ್‌ಗಾರ್ಡ್‌ಗೆ ಸ್ವಾಗತ",
-    signInToContinue: "ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
-    continueWithGoogle: "Google ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ",
-    email: "ಇಮೇಲ್",
-    password: "ಪಾಸ್‌ವರ್ಡ್",
-    signIn: "ಸೈನ್ ಇನ್",
-    signUp: "ಸೈನ್ ಅಪ್",
-    forgotPassword: "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?",
-    needAccount: "ಖಾತೆ ಬೇಕೇ?",
-    logout: "ಲಾಗೌಟ್",
-    selectLanguage: "ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ",
-
-    // Navigation
-    weatherAlerts: "ಹವಾಮಾನ ಎಚ್ಚರಿಕೆಗಳು",
-    aiAssistant: "AI ಸಹಾಯಕ",
-    farmSuggestions: "ಕೃಷಿ ಸಲಹೆಗಳು",
-
-    // Dashboard
-    profitabilityCalculator: "ಲಾಭದಾಯಕತೆ ಲೆಕ್ಕಾಚಾರ",
-    recommendedCrops: "ನಿಮ್ಮ ಫಾರ್ಮ್‌ಗೆ ಶಿಫಾರಸು ಮಾಡಿದ ಬೆಳೆಗಳು",
-    landSize: "ಭೂಮಿಯ ಗಾತ್ರ (ಎಕರೆ)",
-    expectedYield: "ನಿರೀಕ್ಷಿತ ಇಳುವರಿ (ಕೆಜಿ/ಎಕರೆ)",
-    totalCosts: "ಒಟ್ಟು ವೆಚ್ಚಗಳು (₹)",
-    marketPrice: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆ (₹/ಕೆಜಿ)",
-    estimatedProfit: "ಅಂದಾಜು ಲಾಭ",
-    profitMargin: "ಲಾಭ ಅಂತರ",
-    totalYield: "ಒಟ್ಟು ಇಳುವರಿ",
-    bestSowingWindow: "ಅತ್ಯುತ್ತಮ ಬಿತ್ತನೆ ಸಮಯ",
-    harvestAlert: "ಸುಗ್ಗಿಯ ಎಚ್ಚರಿಕೆ",
-    marketTrend: "ಮಾರುಕಟ್ಟೆ ಪ್ರವೃತ್ತಿ",
-
-    // Crop Details
-    sowingTime: "ಬಿತ್ತನೆ ಸಮಯ",
-    getAdvice: "ಸಲಹೆ ಪಡೆಯಿರಿ",
-    planCrop: "ಬೆಳೆ ಯೋಜನೆ",
-    easy: "ಸುಲಭ",
-    medium: "ಮಧ್ಯಮ",
-    hard: "ಕಠಿಣ",
-
-    // AI Assistant
-    aiAssistantTitle: "AI ಕೃಷಿ ಸಹಾಯಕ",
-    aiAssistantSubtitle: "ಕೃತ್ರಿಮ ಬುದ್ಧಿಮತ್ತೆಯಿಂದ ನಡೆಸಲ್ಪಡುವ ತಜ್ಞ ಕೃಷಿ ಸಲಹೆ ಪಡೆಯಿರಿ",
-    askAnything: "ಕೃಷಿ ಬಗ್ಗೆ ಏನಾದರೂ ಕೇಳಿ...",
-
-    // Weather
-    weatherDashboard: "ಹವಾಮಾನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
-    weatherSubtitle: "ಉತ್ತಮ ಕೃಷಿ ನಿರ್ಧಾರಗಳಿಗಾಗಿ ಹವಾಮಾನ ಪರಿಸ್ಥಿತಿಗಳೊಂದಿಗೆ ನವೀಕರಿಸಿ",
-    weatherAlert: "ಹವಾಮಾನ ಎಚ್ಚರಿಕೆ",
-    dayForecast: "5-ದಿನಗಳ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
-    today: "ಇಂದು",
-    tomorrow: "ನಾಳೆ",
-    wednesday: "ಬುಧವಾರ",
-    thursday: "ಗುರುವಾರ",
-    friday: "ಶುಕ್ರವಾರ",
-    humidity: "ಆರ್ದ್ರತೆ",
-    wind: "ಗಾಳಿ",
-
-    // Market
-    marketInfo: "ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ",
-    currentPrices: "ಪ್ರಸ್ತುತ ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು",
-    selectMarket: "ಮಾರುಕಟ್ಟೆ ಆಯ್ಕೆ ಮಾಡಿ",
-    searchCrops: "ಬೆಳೆಗಳನ್ನು ಹುಡುಕಿ...",
-    demand: "ಬೇಡಿಕೆ",
-    high: "ಹೆಚ್ಚು",
-    low: "ಕಡಿಮೆ",
-
-    // Common
-    loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
-    error: "ದೋಷ",
-    retry: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
-    save: "ಉಳಿಸಿ",
-    cancel: "ರದ್ದುಮಾಡಿ",
-    continue: "ಮುಂದುವರಿಸಿ",
-  },
   pa: {
     // Auth & Navigation
-    welcome: "ਫਾਰਮਗਾਰਡ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ",
+    welcome: "ਕ੍ਰਿਸ਼ੀ ਬੰਧੂ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ",
     signInToContinue: "ਜਾਰੀ ਰੱਖਣ ਲਈ ਸਾਇਨ ਇਨ ਕਰੋ",
     continueWithGoogle: "Google ਨਾਲ ਜਾਰੀ ਰੱਖੋ",
     email: "ਈਮੇਲ",
@@ -313,88 +235,12 @@ export const translations = {
     cancel: "ਰੱਦ ਕਰੋ",
     continue: "ਜਾਰੀ ਰੱਖੋ",
   },
-  ta: {
-    // Auth & Navigation
-    welcome: "FarmGuard இல் வரவேற்கிறோம்",
-    signInToContinue: "தொடர சைன் இன் செய்யவும்",
-    continueWithGoogle: "Google உடன் தொடரவும்",
-    email: "மின்னஞ்சல்",
-    password: "கடவுச்சொல்",
-    signIn: "உள்நுழைய",
-    signUp: "பதிவு செய்க",
-    forgotPassword: "கடவுச்சொல் மறந்துவிட்டதா?",
-    needAccount: "கணக்கு தேவையா?",
-    logout: "வெளியேறு",
-    selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
-
-    // Navigation
-    weatherAlerts: "வானிலை எச்சரிக்கைகள்",
-    aiAssistant: "AI உதவியாளர்",
-    farmSuggestions: "விவசாய ஆலோசனைகள்",
-
-    // Dashboard
-    profitabilityCalculator: "லாபகரமான கணக்கீட்டாளர்",
-    recommendedCrops: "உங்கள் பண்ணைக்கு பரிந்துரைக்கப்பட்ட பயிர்கள்",
-    landSize: "நிலத்தின் அளவு (ஏக்கர்)",
-    expectedYield: "எதிர்பார்க்கப்படும் விளைச்சல் (கிலோ/ஏக்கர்)",
-    totalCosts: "மொத்த செலவுகள் (₹)",
-    marketPrice: "சந்தை விலை (₹/கிலோ)",
-    estimatedProfit: "மதிப்பிடப்பட்ட லாபம்",
-    profitMargin: "லாப வரம்பு",
-    totalYield: "மொத்த விளைச்சல்",
-    bestSowingWindow: "சிறந்த விதைப்பு நேரம்",
-    harvestAlert: "அறுவடை எச்சரிக்கை",
-    marketTrend: "சந்தை போக்கு",
-
-    // Crop Details
-    sowingTime: "விதைப்பு நேரம்",
-    getAdvice: "ஆலோசனை பெறவும்",
-    planCrop: "பயிர் திட்டம்",
-    easy: "எளிது",
-    medium: "நடுத்தர",
-    hard: "கடினம்",
-
-    // AI Assistant
-    aiAssistantTitle: "AI விவசாய உதவியாளர்",
-    aiAssistantSubtitle: "செயற்கை நுண்ணறிவால் இயக்கப்படும் நிபுணர் விவசாய ஆலோசனையைப் பெறுங்கள்",
-    askAnything: "விவசாயம் பற்றி எதையும் கேளுங்கள்...",
-
-    // Weather
-    weatherDashboard: "வானிலை டாஷ்போர்டு",
-    weatherSubtitle: "சிறந்த விவசாய முடிவுகளுக்கு வானிலை நிலைமைகளுடன் புதுப்பிக்கவும்",
-    weatherAlert: "வானிலை எச்சரிக்கை",
-    dayForecast: "5-நாள் வானிலை முன்னறிவிப்பு",
-    today: "இன்று",
-    tomorrow: "நாளை",
-    wednesday: "புதன்கிழமை",
-    thursday: "வியாழன்",
-    friday: "வெள்ளி",
-    humidity: "ஈரப்பதம்",
-    wind: "காற்று",
-
-    // Market
-    marketInfo: "சந்தை தகவல்",
-    currentPrices: "தற்போதைய சந்தை விலைகள்",
-    selectMarket: "சந்தையைத் தேர்ந்தெடுக்கவும்",
-    searchCrops: "பயிர்களைத் தேடுங்கள்...",
-    demand: "தேவை",
-    high: "அதிகம்",
-    low: "குறைவு",
-
-    // Common
-    loading: "ஏற்றுகிறது...",
-    error: "பிழை",
-    retry: "மீண்டும் முயற்சிக்கவும்",
-    save: "சேமிக்கவும்",
-    cancel: "ரத்துசெய்",
-    continue: "தொடரவும்",
-  },
   // Additional languages can be added here following the same pattern
 } as const
 
 export function getTranslation(language: Language, key: keyof typeof translations.en): string {
   // Only access translation if language exists in translations object
-  const supportedLanguages = ['en', 'hi', 'kn', 'pa', 'ta'] as const
+  const supportedLanguages = ['en', 'hi', 'pa'] as const
   type SupportedLanguage = typeof supportedLanguages[number]
   
   const translationLang = supportedLanguages.includes(language as SupportedLanguage) 

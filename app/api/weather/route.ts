@@ -71,11 +71,14 @@ interface ProcessedWeatherData {
 
 interface WeatherAlert {
   id: string
-  type: 'warning' | 'watch' | 'advisory'
+  type: 'warning' | 'watch' | 'advisory' | 'emergency' | 'extreme'
   title: string
   description: string
-  severity: 'low' | 'medium' | 'high'
+  severity: 'low' | 'medium' | 'high' | 'extreme' | 'critical'
   validUntil: string
+  category: 'rain' | 'wind' | 'temperature' | 'storm' | 'flood' | 'drought'
+  impact: string
+  recommendedActions: string[]
 }
 
 export async function GET(request: NextRequest) {
@@ -251,44 +254,243 @@ function generateFarmingRecommendations(condition: string, rainfall: number, win
   return recommendations
 }
 
-// Generate weather alerts based on forecast data
+// Generate weather alerts based on forecast data with enhanced analysis
 function generateWeatherAlerts(forecast: ProcessedWeatherData[]): WeatherAlert[] {
   const alerts: WeatherAlert[] = []
   
   forecast.forEach((day, index) => {
-    // Heavy rainfall alert
-    if (day.rainfall > 20) {
+    // Heavy rainfall and flood alerts
+    if (day.rainfall > 50) {
       alerts.push({
-        id: `rain-${day.date}`,
+        id: `flood-${day.date}`,
+        type: 'emergency',
+        title: 'Flood Emergency',
+        description: `Extreme rainfall of ${day.rainfall}mm expected on ${day.day}. High risk of flooding in low-lying areas.`,
+        severity: 'critical',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'flood',
+        impact: 'Severe flooding expected, crop damage likely, field operations impossible',
+        recommendedActions: [
+          'Evacuate livestock from low-lying areas immediately',
+          'Secure farm equipment and move to higher ground',
+          'Check and reinforce drainage systems',
+          'Harvest ready crops before flooding occurs',
+          'Monitor water levels continuously',
+          'Prepare emergency supplies for livestock'
+        ]
+      })
+    } else if (day.rainfall > 30) {
+      alerts.push({
+        id: `heavy-rain-${day.date}`,
         type: 'warning',
         title: 'Heavy Rainfall Warning',
-        description: `Heavy rainfall of ${day.rainfall}mm expected on ${day.day}. Consider harvesting ready crops and protecting young plants.`,
+        description: `Heavy rainfall of ${day.rainfall}mm expected on ${day.day}. Risk of waterlogging and flash flooding.`,
         severity: 'high',
-        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString()
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'rain',
+        impact: 'Waterlogging likely, delayed field operations, potential crop damage',
+        recommendedActions: [
+          'Avoid field operations during heavy rain',
+          'Ensure proper drainage in fields',
+          'Harvest ready crops before rain intensifies',
+          'Check for waterlogging in low-lying areas',
+          'Postpone spraying and fertilizer application'
+        ]
       })
-    }
-    
-    // High wind alert
-    if (day.windSpeed > 35) {
+    } else if (day.rainfall > 15) {
       alerts.push({
-        id: `wind-${day.date}`,
+        id: `moderate-rain-${day.date}`,
         type: 'advisory',
-        title: 'High Wind Advisory',
-        description: `Strong winds up to ${day.windSpeed} km/h expected on ${day.day}. Secure loose farming equipment and check crop supports.`,
+        title: 'Moderate Rainfall Advisory',
+        description: `Moderate rainfall of ${day.rainfall}mm expected on ${day.day}. Beneficial for most crops but monitor conditions.`,
         severity: 'medium',
-        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString()
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'rain',
+        impact: 'Generally beneficial, may delay some field operations',
+        recommendedActions: [
+          'Monitor soil moisture levels',
+          'Adjust irrigation schedules accordingly',
+          'Watch for signs of waterlogging',
+          'Good conditions for planting if not excessive'
+        ]
       })
     }
     
-    // Extreme temperature alert
-    if (day.high > 40) {
+    // Extreme wind and storm alerts
+    if (day.windSpeed > 60) {
       alerts.push({
-        id: `heat-${day.date}`,
-        type: 'watch',
-        title: 'Extreme Heat Warning',
-        description: `Very high temperatures of ${day.high}°C expected on ${day.day}. Increase irrigation and provide shade protection for sensitive crops.`,
+        id: `extreme-wind-${day.date}`,
+        type: 'emergency',
+        title: 'Extreme Wind Warning',
+        description: `Dangerous winds up to ${day.windSpeed} km/h expected on ${day.day}. Risk of crop damage and structural damage.`,
+        severity: 'critical',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'wind',
+        impact: 'Severe crop damage, structural damage, dangerous working conditions',
+        recommendedActions: [
+          'Secure all loose farm equipment immediately',
+          'Reinforce greenhouses and farm structures',
+          'Bring livestock to protected shelters',
+          'Avoid all outdoor activities',
+          'Prepare for power outages',
+          'Check crop supports and ties'
+        ]
+      })
+    } else if (day.windSpeed > 45) {
+      alerts.push({
+        id: `high-wind-${day.date}`,
+        type: 'warning',
+        title: 'High Wind Warning',
+        description: `Strong winds up to ${day.windSpeed} km/h expected on ${day.day}. Risk of crop damage and hazardous conditions.`,
         severity: 'high',
-        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString()
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'wind',
+        impact: 'Crop damage likely, hazardous working conditions',
+        recommendedActions: [
+          'Secure loose farming equipment',
+          'Check and reinforce crop supports',
+          'Avoid spraying operations',
+          'Protect young plants from wind damage',
+          'Monitor greenhouse structures'
+        ]
+      })
+    } else if (day.windSpeed > 30) {
+      alerts.push({
+        id: `wind-advisory-${day.date}`,
+        type: 'advisory',
+        title: 'Wind Advisory',
+        description: `Moderate winds up to ${day.windSpeed} km/h expected on ${day.day}. Take precautions with sensitive operations.`,
+        severity: 'medium',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'wind',
+        impact: 'May affect spraying operations, light crop damage possible',
+        recommendedActions: [
+          'Avoid spraying operations in windy conditions',
+          'Check crop supports and ties',
+          'Secure light equipment',
+          'Monitor for wind damage'
+        ]
+      })
+    }
+    
+    // Extreme temperature alerts
+    if (day.high > 45) {
+      alerts.push({
+        id: `extreme-heat-${day.date}`,
+        type: 'emergency',
+        title: 'Extreme Heat Emergency',
+        description: `Dangerous temperatures of ${day.high}°C expected on ${day.day}. Severe risk to crops and livestock.`,
+        severity: 'critical',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'temperature',
+        impact: 'Severe crop stress, livestock heat stress, high evaporation',
+        recommendedActions: [
+          'Provide shade and extra water for livestock immediately',
+          'Increase irrigation significantly',
+          'Avoid all field operations during peak heat',
+          'Use shade nets for sensitive crops',
+          'Monitor livestock for heat stress symptoms',
+          'Prepare for potential crop losses'
+        ]
+      })
+    } else if (day.high > 40) {
+      alerts.push({
+        id: `extreme-heat-${day.date}`,
+        type: 'warning',
+        title: 'Extreme Heat Warning',
+        description: `Very high temperatures of ${day.high}°C expected on ${day.day}. Significant risk to crops and livestock.`,
+        severity: 'high',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'temperature',
+        impact: 'Crop stress, livestock discomfort, increased water needs',
+        recommendedActions: [
+          'Increase irrigation frequency',
+          'Provide shade for sensitive crops',
+          'Ensure adequate water supply for livestock',
+          'Avoid field operations during hottest hours',
+          'Monitor crops for heat stress symptoms'
+        ]
+      })
+    } else if (day.high > 35) {
+      alerts.push({
+        id: `heat-advisory-${day.date}`,
+        type: 'advisory',
+        title: 'Heat Advisory',
+        description: `High temperatures of ${day.high}°C expected on ${day.day}. Take precautions with crops and livestock.`,
+        severity: 'medium',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'temperature',
+        impact: 'Moderate crop stress, increased water requirements',
+        recommendedActions: [
+          'Adjust irrigation schedules',
+          'Monitor soil moisture levels',
+          'Provide shade for sensitive livestock',
+          'Consider heat-tolerant crop varieties'
+        ]
+      })
+    }
+    
+    // Cold temperature alerts
+    if (day.low < 0) {
+      alerts.push({
+        id: `freeze-warning-${day.date}`,
+        type: 'warning',
+        title: 'Freeze Warning',
+        description: `Freezing temperatures of ${day.low}°C expected on ${day.day}. Risk of frost damage to crops.`,
+        severity: 'high',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'temperature',
+        impact: 'Frost damage to sensitive crops, potential crop loss',
+        recommendedActions: [
+          'Protect sensitive crops with covers or mulch',
+          'Harvest frost-sensitive crops if possible',
+          'Ensure adequate irrigation (water helps prevent frost damage)',
+          'Monitor temperature closely overnight',
+          'Prepare for potential crop losses'
+        ]
+      })
+    }
+    
+    // Drought alerts (based on consecutive dry days and high temperatures)
+    const consecutiveDryDays = forecast.slice(0, index + 1).filter(d => d.rainfall < 2).length
+    if (consecutiveDryDays >= 7 && day.high > 30) {
+      alerts.push({
+        id: `drought-${day.date}`,
+        type: 'warning',
+        title: 'Drought Warning',
+        description: `${consecutiveDryDays} consecutive dry days with high temperatures. Risk of drought stress.`,
+        severity: 'high',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'drought',
+        impact: 'Severe water stress, crop yield reduction, increased irrigation costs',
+        recommendedActions: [
+          'Implement water conservation measures',
+          'Prioritize irrigation for most valuable crops',
+          'Consider drought-resistant crop varieties',
+          'Monitor soil moisture levels closely',
+          'Prepare for potential yield reductions'
+        ]
+      })
+    }
+    
+    // Storm alerts (based on weather conditions)
+    if (day.condition.toLowerCase().includes('thunder') || day.condition.toLowerCase().includes('storm')) {
+      alerts.push({
+        id: `storm-${day.date}`,
+        type: 'warning',
+        title: 'Storm Warning',
+        description: `Thunderstorms expected on ${day.day}. Risk of lightning, heavy rain, and strong winds.`,
+        severity: 'high',
+        validUntil: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'storm',
+        impact: 'Lightning risk, heavy rain, strong winds, potential hail damage',
+        recommendedActions: [
+          'Seek shelter during storms',
+          'Unplug electrical equipment',
+          'Secure loose objects',
+          'Avoid open fields and tall trees',
+          'Monitor for hail damage'
+        ]
       })
     }
   })

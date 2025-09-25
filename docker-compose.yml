@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Main application
+  # Main Next.js application
   app:
     build:
       context: .
@@ -13,15 +13,24 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      - DATABASE_URL=postgresql://farmguard:farmguard_password@postgres:5432/farmguard
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MILVUS_URI=http://milvus-standalone:19530
+      - LOCALAI_URL=http://localai:8080
+      - IMAGE_INFERENCE_URL=http://image-inference:8001
     env_file:
       - .env.local
     restart: unless-stopped
     depends_on:
+      - postgres
       - redis
+      - minio
+      - milvus-standalone
     networks:
       - farmguard-network
 
-  # Development server (alternative to production build)
+  # Development server
   app-dev:
     build:
       context: .
@@ -32,6 +41,12 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
+      - DATABASE_URL=postgresql://farmguard:farmguard_password@postgres:5432/farmguard
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MILVUS_URI=http://milvus-standalone:19530
+      - LOCALAI_URL=http://localai:8080
+      - IMAGE_INFERENCE_URL=http://image-inference:8001
     env_file:
       - .env.local
     volumes:
@@ -41,23 +56,32 @@ services:
     restart: unless-stopped
     profiles:
       - dev
+    depends_on:
+      - postgres
+      - redis
+      - minio
     networks:
       - farmguard-network
 
-  # Redis for caching and session storage
+  # Redis for caching, session storage, and job queues
   redis:
     image: redis:7-alpine
     container_name: farmguard-redis
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - farmguard-network
 
-  # PostgreSQL database (for future use)
+  # PostgreSQL database
   postgres:
     image: postgres:15-alpine
     container_name: farmguard-postgres
@@ -67,12 +91,215 @@ services:
       - POSTGRES_DB=farmguard
       - POSTGRES_USER=farmguard
       - POSTGRES_PASSWORD=farmguard_password
+      - POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
-    profiles:
-      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farmguard -d farmguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - farmguard-network
+
+  # MinIO for object storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: farmguard-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=farmguard
+      - MINIO_ROOT_PASSWORD=farmguard123
+      - MINIO_DOMAIN=minio
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - farmguard-network
+
+  # Milvus vector database for RAG
+  etcd:
+    container_name: milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - farmguard-network
+
+  minio-milvus:
+    container_name: milvus-minio
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - minio_milvus_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - farmguard-network
+
+  milvus-standalone:
+    container_name: milvus-standalone
+    image: milvusdb/milvus:v2.3.3
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio-milvus:9000
+    volumes:
+      - milvus_data:/var/lib/milvus
+      - ./docker/milvus/milvus.yaml:/milvus/configs/milvus.yaml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - "etcd"
+      - "minio-milvus"
+    networks:
+      - farmguard-network
+
+  # LocalAI for local LLM inference
+  localai:
+    image: quay.io/go-skynet/local-ai:latest
+    container_name: farmguard-localai
+    ports:
+      - "8080:8080"
+    environment:
+      - DEBUG=true
+      - MODELS_PATH=/models
+      - GALLERIES=[
+          {
+            "name":"model-gallery",
+            "url":"github:go-skynet/model-gallery/index.yaml"
+          }
+        ]
+    volumes:
+      - ./models:/models:cached
+      - ./docker/localai/config.yaml:/config.yaml
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 120s
+    # Uncomment if you have GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - farmguard-network
+
+  # Image inference microservice for pest detection
+  image-inference:
+    build:
+      context: ./services/image-inference
+      dockerfile: Dockerfile
+    container_name: farmguard-image-inference
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/models
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=farmguard
+      - MINIO_SECRET_KEY=farmguard123
+    volumes:
+      - ./models/vision:/app/models:cached
+      - /tmp/uploads:/tmp/uploads
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 60s
+    # Uncomment if you have GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - farmguard-network
+
+  # FastAPI AI Backend
+  ai-backend:
+    build:
+      context: ./farmguard-ai-backend
+      dockerfile: Dockerfile
+    container_name: farmguard-ai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://farmguard:farmguard_password@postgres:5432/farmguard
+      - REDIS_URL=redis://redis:6379
+      - MILVUS_URI=http://milvus-standalone:19530
+      - LOCALAI_URL=http://localai:8080
+      - IMAGE_INFERENCE_URL=http://image-inference:8000
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=farmguard
+      - MINIO_SECRET_KEY=farmguard123
+    volumes:
+      - ./models:/app/models:cached
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - milvus-standalone
+      - localai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
     networks:
       - farmguard-network
 
@@ -136,9 +363,21 @@ services:
 
 volumes:
   redis_data:
+    driver: local
   postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+  minio_milvus_data:
+    driver: local
+  etcd_data:
+    driver: local
+  milvus_data:
+    driver: local
   prometheus_data:
+    driver: local
   grafana_data:
+    driver: local
 
 networks:
   farmguard-network:

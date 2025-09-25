@@ -1,0 +1,174 @@
+# LocalAI Configuration for FarmGuard
+# Optimized for agricultural AI assistance with multilingual support
+
+# General settings
+debug: true
+log_level: info
+
+# Model galleries - prebuilt model configurations
+galleries:
+  - name: "model-gallery"
+    url: "github:go-skynet/model-gallery/index.yaml"
+
+# Backend configuration
+backend: "llama-cpp"
+
+# Model configurations for different use cases
+models:
+  # Primary conversational model - Mistral 7B
+  - name: "farmguard-chat"
+    model: "mistral-7b-instruct-v0.1.Q4_K_M.gguf"
+    backend: "llama-cpp"
+    parameters:
+      model: "/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf"
+      context_size: 4096
+      threads: 4
+      f16_kv: true
+      low_vram: false
+      mmap: true
+      mlock: false
+      n_gpu_layers: 35  # Adjust based on your GPU
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+      repeat_penalty: 1.1
+      seed: -1
+    template:
+      completion: |
+        [INST] You are an AI farming assistant for Indian farmers. Provide practical, actionable advice about crops, pests, weather, and farming techniques. Keep responses simple and helpful. If you don't know something, say so.
+        
+        {{ .Input }} [/INST]
+      chat: |
+        [INST] <<SYS>>
+        You are FarmGuard AI, a knowledgeable agricultural assistant for Indian farmers. You provide:
+        - Practical farming advice
+        - Crop management guidance  
+        - Pest and disease identification
+        - Weather-based recommendations
+        - Market insights
+        - Sustainable farming practices
+        
+        Always be helpful, accurate, and consider local Indian agricultural conditions. Respond in the same language as the question when possible.
+        <</SYS>>
+        
+        {{.Input}} [/INST]
+
+  # Lightweight model for quick responses
+  - name: "farmguard-quick"
+    model: "phi-3-mini-4k-instruct.Q4_K_M.gguf"
+    backend: "llama-cpp"
+    parameters:
+      model: "/models/phi-3-mini-4k-instruct.Q4_K_M.gguf"
+      context_size: 2048
+      threads: 2
+      f16_kv: true
+      low_vram: true
+      temperature: 0.6
+      top_p: 0.85
+      n_gpu_layers: 20
+    template:
+      completion: |
+        <|user|>You are a helpful farming assistant. Answer briefly and practically.
+        {{ .Input }}<|end|>
+        <|assistant|>
+
+  # Embedding model for RAG
+  - name: "text-embedding"
+    model: "all-MiniLM-L6-v2"
+    backend: "sentence-transformers"
+    parameters:
+      model: "/models/all-MiniLM-L6-v2"
+
+# API Configuration
+api:
+  listen_addr: "0.0.0.0:8080"
+  upload_limit: 20971520  # 20MB
+  cors: true
+  cors_allow_origins: "*"
+  cors_allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+  cors_allow_headers: "*"
+
+# OpenAI API compatibility
+openai:
+  # Model aliases for OpenAI API compatibility
+  model_aliases:
+    "gpt-3.5-turbo": "farmguard-chat"
+    "gpt-3.5-turbo-16k": "farmguard-chat"
+    "text-davinci-003": "farmguard-chat"
+    "text-embedding-ada-002": "text-embedding"
+
+# Audio configuration (for future ASR/TTS integration)
+audio:
+  backend: "whisper"
+
+# Function calling configuration
+functions:
+  disable: false
+  # Grammar file for function calling (if needed)
+  # grammar_file: "/config/functions.grammar"
+
+# Memory and performance settings
+memory:
+  # Maximum memory usage in MB (adjust based on available RAM)
+  max_memory: 8192
+  
+# Preprocessing
+preprocess:
+  # Enable preprocessing for better performance
+  enabled: true
+
+# Context settings
+context:
+  # Size of the context window
+  size: 4096
+
+# Logging configuration
+logging:
+  # Log level (debug, info, warn, error)
+  level: "info"
+  # Log format (text, json)
+  format: "text"
+
+# Health check configuration
+health_check:
+  enabled: true
+  endpoint: "/readyz"
+
+# Rate limiting (optional)
+rate_limit:
+  enabled: false
+  requests_per_minute: 60
+
+# Security settings
+security:
+  # API key authentication (optional)
+  api_keys: []
+  
+  # CORS settings
+  cors_enabled: true
+  cors_origins: ["*"]
+  
+# Monitoring
+monitoring:
+  enabled: true
+  metrics_endpoint: "/metrics"
+
+# Auto-loading of models
+auto_load_gallery: false
+
+# Model download settings  
+model_download:
+  # Number of download attempts
+  attempts: 3
+  # Download timeout in seconds
+  timeout: 1800
+
+# Startup configuration
+startup:
+  # Models to load on startup
+  models_to_load:
+    - "farmguard-chat"
+    - "text-embedding"
+  
+  # Warmup requests to ensure models are ready
+  warmup_requests: 2

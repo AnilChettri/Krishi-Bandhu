@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, AlertTriangle, Calendar, MapPin } from "lucide-react"
+import { CloudRain, Sun, Cloud, Wind, Droplets, Eye, ArrowLeft, Calendar, MapPin } from "lucide-react"
 import Link from "next/link"
+import WeatherAlerts from "@/components/weather-alerts"
 
 interface WeatherData {
   date: string
@@ -41,11 +41,14 @@ interface WeatherResponse {
 
 interface WeatherAlert {
   id: string
-  type: "warning" | "watch" | "advisory"
+  type: "warning" | "watch" | "advisory" | "emergency" | "extreme"
   title: string
   description: string
-  severity: "low" | "medium" | "high"
+  severity: "low" | "medium" | "high" | "extreme" | "critical"
   validUntil: string
+  category: "rain" | "wind" | "temperature" | "storm" | "flood" | "drought"
+  impact: string
+  recommendedActions: string[]
 }
 
 export default function WeatherPage() {
@@ -53,25 +56,27 @@ export default function WeatherPage() {
   const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   // Fetch weather data from our API
-  useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/weather')
-        const data: WeatherResponse = await response.json()
-        
-        setWeatherData(data)
-        setError(null)
-      } catch (err) {
-        console.error('Failed to fetch weather data:', err)
-        setError('Failed to load weather data')
-      } finally {
-        setLoading(false)
-      }
+  const fetchWeatherData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/weather')
+      const data: WeatherResponse = await response.json()
+      
+      setWeatherData(data)
+      setLastRefresh(new Date())
+      setError(null)
+    } catch (err) {
+      console.error('Failed to fetch weather data:', err)
+      setError('Failed to load weather data')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchWeatherData()
   }, [])
 
@@ -98,32 +103,6 @@ export default function WeatherPage() {
         return <Cloud className="h-8 w-8 text-gray-400" />
       default:
         return <Sun className="h-8 w-8 text-yellow-500" />
-    }
-  }
-
-  const getAlertColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "border-red-200 bg-red-50"
-      case "medium":
-        return "border-orange-200 bg-orange-50"
-      case "low":
-        return "border-yellow-200 bg-yellow-50"
-      default:
-        return "border-gray-200 bg-gray-50"
-    }
-  }
-
-  const getAlertTextColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "text-red-800"
-      case "medium":
-        return "text-orange-800"
-      case "low":
-        return "text-yellow-800"
-      default:
-        return "text-gray-800"
     }
   }
 
@@ -238,29 +217,11 @@ export default function WeatherPage() {
         </div>
 
         {/* Weather Alerts */}
-        {weatherAlerts.length > 0 && (
-          <div className="space-y-4 mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Weather Alerts
-            </h2>
-            {weatherAlerts.map((alert) => (
-              <Alert key={alert.id} className={getAlertColor(alert.severity)}>
-                <AlertTriangle className={`h-4 w-4 ${getAlertTextColor(alert.severity)}`} />
-                <AlertDescription className={getAlertTextColor(alert.severity)}>
-                  <div className="flex justify-between items-start mb-2">
-                    <strong>{alert.title}</strong>
-                    <Badge variant="outline" className="text-xs">
-                      {alert.type.toUpperCase()}
-                    </Badge>
-                  </div>
-                  <p className="mb-2">{alert.description}</p>
-                  <p className="text-xs">Valid until: {new Date(alert.validUntil).toLocaleString()}</p>
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+        <WeatherAlerts 
+          alerts={weatherAlerts} 
+          onRefresh={fetchWeatherData}
+          className="mb-6"
+        />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Current Weather */}

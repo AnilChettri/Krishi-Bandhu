@@ -9,28 +9,28 @@ import { Suspense } from "react"
 import { LanguageProvider } from "@/contexts/language-context"
 
 export const metadata: Metadata = {
-  title: "FarmGuard - Smart Crop Advisory System",
+  title: "Krishi Bandhu - Smart Crop Advisory System",
   description:
     "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
-  generator: "FarmGuard",
+  generator: "Krishi Bandhu",
   manifest: "/manifest.json",
   keywords: ["farming", "agriculture", "crop advisory", "weather", "market prices", "AI assistant", "offline"],
-  authors: [{ name: "FarmGuard Team" }],
-  creator: "FarmGuard",
-  publisher: "FarmGuard",
+  authors: [{ name: "Krishi Bandhu Team" }],
+  creator: "Krishi Bandhu",
+  publisher: "Krishi Bandhu",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://farmguard.app"),
+  metadataBase: new URL("https://krishibandhu.app"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    siteName: "FarmGuard",
-    title: "FarmGuard - Smart Crop Advisory System",
+    siteName: "Krishi Bandhu",
+    title: "Krishi Bandhu - Smart Crop Advisory System",
     description:
       "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
     images: [
@@ -38,13 +38,13 @@ export const metadata: Metadata = {
         url: "/icon-512.jpg",
         width: 512,
         height: 512,
-        alt: "FarmGuard Logo",
+        alt: "Krishi Bandhu Logo",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FarmGuard - Smart Crop Advisory System",
+    title: "Krishi Bandhu - Smart Crop Advisory System",
     description:
       "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
     images: ["/icon-512.jpg"],
@@ -52,14 +52,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "FarmGuard",
+    title: "Krishi Bandhu",
   },
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "FarmGuard",
-    "application-name": "FarmGuard",
+    "apple-mobile-web-app-title": "Krishi Bandhu",
+    "application-name": "Krishi Bandhu",
     "msapplication-TileColor": "#15803d",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#15803d",

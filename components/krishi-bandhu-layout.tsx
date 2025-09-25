@@ -9,11 +9,11 @@ import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
 import { LanguageSelector } from "@/components/language-selector"
 
-interface FarmGuardLayoutProps {
+interface KrishiBandhuLayoutProps {
   children: React.ReactNode
 }
 
-export default function FarmGuardLayout({ children }: FarmGuardLayoutProps) {
+export default function KrishiBandhuLayout({ children }: KrishiBandhuLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useLanguage()
@@ -69,7 +69,7 @@ export default function FarmGuardLayout({ children }: FarmGuardLayoutProps) {
                 <Sprout className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">FarmGuard</h1>
+                <h1 className="text-xl font-bold text-white">Krishi Bandhu</h1>
                 <p className="text-xs text-green-100">Smart Farming Assistant</p>
               </div>
             </Link>

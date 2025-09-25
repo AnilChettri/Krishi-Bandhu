@@ -1,8 +1,8 @@
-# 🌾 **FARMGUARD** – Farmer Friendly Smart Assistant
+# 🌾 **Krishi Bandhu** – Farmer Friendly Smart Assistant
 
-![FARMGUARD Logo](public/placeholder-logo.png)
+![Krishi Bandhu Logo](public/placeholder-logo.png)
 
-**FARMGUARD** is a farmer-friendly web application prototype built for **SIH25010**. It empowers farmers with weather insights, AI-driven guidance, and crop planning suggestions in a simple and accessible way.
+**Krishi Bandhu** is a farmer-friendly web application prototype built for **SIH25010**. It empowers farmers with weather insights, AI-driven guidance, and crop planning suggestions in a simple and accessible way.
 
 ## 🚀 Features
 
@@ -16,7 +16,7 @@
 - **🤖 AI Assistant** – Intelligent farming advice powered by OpenAI and Cohere
 - **🎙️ Voice Input Support** – Ask questions hands-free for better accessibility
 - **🌱 Farm Suggestions** – Personalized crop recommendations with profit calculator
-- **🌐 Multilingual Support** – Available in 5 languages: English, Hindi, Kannada, Punjabi, and Tamil
+- **🌐 Multilingual Support** – Available in 3 languages: English, Hindi, and Punjabi
 
 ## 🛠️ Tech Stack
 
@@ -38,8 +38,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/AnilChettri/FARMGUARD.git
-   cd FARMGUARD
+   git clone https://github.com/AnilChettri/Krishi-Bandhu.git
+   cd Krishi-Bandhu
    ```
 
 2. **Install dependencies**
@@ -88,12 +88,10 @@
 ## 🌍 Supported Languages
 - English
 - Hindi (हिन्दी)
-- Kannada (ಕನ್ನಡ)
 - Punjabi (ਪੰਜਾਬੀ)
-- Tamil (தமிழ்)
 
 ## 📱 Progressive Web App (PWA)
-FARMGUARD is built as a PWA, offering:
+Krishi Bandhu is built as a PWA, offering:
 - **Offline functionality** for essential features
 - **Mobile-responsive design** for all device types
 - **Install prompts** for native app-like experience
@@ -101,7 +99,7 @@ FARMGUARD is built as a PWA, offering:
 
 ## 🏗️ Project Structure
 ```
-FARMGUARD/
+Krishi-Bandhu/
 ├── app/                    # Next.js app directory
 │   ├── api/               # API routes
 │   ├── auth/              # Authentication pages

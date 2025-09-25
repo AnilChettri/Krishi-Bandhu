@@ -1,0 +1,187 @@
+# Milvus Configuration for FarmGuard RAG Pipeline
+# Optimized for agricultural document embedding and retrieval
+
+# Version
+version: 2.3.3
+
+# Etcd configuration
+etcd:
+  endpoints:
+    - etcd:2379
+  rootPath: by-dev # The root path where data are stored in etcd
+  metaSubPath: meta # metaPath = rootPath + "/" + metaSubPath
+  kvSubPath: kv # kvPath = rootPath + "/" + kvSubPath
+
+# MinIO configuration for object storage
+minio:
+  address: minio-milvus
+  port: 9000
+  accessKeyID: minioadmin
+  secretAccessKey: minioadmin
+  useSSL: false
+  bucketName: a-bucket
+  rootPath: files # The root path where the message is stored in MinIO
+  useIAM: false
+  iamEndpoint: ""
+
+# Message queue configuration
+mq:
+  type: rocksmq
+
+# RocksMQ configuration
+rocksmq:
+  path: /var/lib/milvus/rdb_data # The path where the message is stored in rocksmq
+  lrucacheratio: 0.06 # rocksdb cache memory ratio
+
+# Storage configuration
+localStorage:
+  path: /var/lib/milvus/data/
+
+# Log configuration
+log:
+  level: info
+  file:
+    rootPath: /var/log/milvus
+    maxSize: 300 # MB
+    maxAge: 10 # days
+    maxBackups: 20
+
+# Server configuration
+grpc:
+  serverMaxRecvSize: 268435456 # 256MB
+  serverMaxSendSize: 268435456 # 256MB
+  clientMaxRecvSize: 104857600 # 100MB
+  clientMaxSendSize: 104857600 # 100MB
+
+# Data node configuration
+dataNode:
+  dataSync:
+    flowGraph:
+      maxQueueLength: 1024
+      maxParallelism: 1024
+
+# Query node configuration
+queryNode:
+  stats:
+    publishInterval: 1000 # ms
+  scheduler:
+    receiveChanSize: 10240
+    unsolvedQueueSize: 10240
+    maxReadConcurrency: 16
+
+# Index node configuration
+indexNode:
+  scheduler:
+    buildParallel: 1
+
+# Common configuration
+common:
+  defaultPartitionName: "_default"
+  defaultIndexName: "_default_idx"
+  retentionDuration: 432000 # 5 days in seconds
+  entityExpiration: -1 # Entity expiration time in seconds, -1 means never expire
+  
+  # Security settings
+  security:
+    authorizationEnabled: false
+    tlsMode: 0
+
+# Root coordinator configuration
+rootCoord:
+  dmlChannelNum: 16
+  maxPartitionNum: 4096
+  minSegmentSizeToEnableIndex: 1024
+
+# Data coordinator configuration
+dataCoord:
+  segment:
+    maxSize: 1024 # MB
+    sealProportion: 0.85
+    assignmentExpiration: 2000 # ms
+    maxLifetime: 86400 # 24 hours in seconds
+  gc:
+    interval: 3600 # 1 hour in seconds
+    missingTolerance: 86400 # 24 hours in seconds
+    dropTolerance: 10800 # 3 hours in seconds
+
+# Query coordinator configuration
+queryCoord:
+  autoHandoff: true
+  autoBalance: true
+  overloadedMemoryThresholdPercentage: 90
+  balanceIntervalSeconds: 60
+  memoryUsageMaxDifferencePercentage: 30
+  checkInterval: 1000 # ms
+  channelTaskTimeout: 60000 # ms
+  segmentTaskTimeout: 120000 # ms
+
+# Knowhere configuration (for vector operations)
+knowhere:
+  simdType: auto
+
+# Proxy configuration
+proxy:
+  timeTickInterval: 200 # ms
+  msgStream:
+    timeTick:
+      bufSize: 512
+
+# Auto flush configuration
+autoflush:
+  interval: 600 # 10 minutes in seconds
+
+# Quotas and limits
+quotaAndLimits:
+  enable: true
+  # Rate limiting
+  ddl:
+    enabled: true
+    collectionRate: 10 # qps, default is 10
+    partitionRate: 10 # qps, default is 10
+  indexRate:
+    enabled: true
+    max: 10 # qps, default is 10
+  flushRate:
+    enabled: true
+    max: 10 # qps, default is 10
+  compaction:
+    enabled: true
+    max: 10 # qps, default is 10
+  
+  # DML (Data Manipulation Language) limits
+  dml:
+    enabled: true
+    insertRate:
+      max: 16384 # qps, default is 16384
+    deleteRate:
+      max: 16384 # qps, default is 16384
+    bulkLoadRate:
+      max: 16384 # qps, default is 16384
+
+  # DQL (Data Query Language) limits  
+  dql:
+    enabled: true
+    searchRate:
+      max: 16384 # qps, default is 16384
+    queryRate:
+      max: 16384 # qps, default is 16384
+
+  # Limits on collection numbers
+  limitWriting:
+    # forceDeny indicates whether the system will force deny writing operations
+    forceDeny: false
+    # ttProtection enables/disables time tick protection
+    ttProtection:
+      enabled: false
+      maxTimeTickDelay: 9223372036854775807 # max value of int64
+    # memProtection enables/disables memory protection
+    memProtection:
+      enabled: true
+      dataNodeMemoryLowWaterLevel: 0.85 # 85%
+      dataNodeMemoryHighWaterLevel: 0.95 # 95%
+      queryNodeMemoryLowWaterLevel: 0.85 # 85%
+      queryNodeMemoryHighWaterLevel: 0.95 # 95%
+    # diskProtection enables/disables disk quota protection
+    diskProtection:
+      enabled: true
+      diskQuota: 107374182400 # 100GB in bytes

@@ -1,6 +1,6 @@
 {
-  "name": "FarmGuard - Smart Crop Advisory System",
-  "short_name": "FarmGuard",
+  "name": "Krishi Bandhu - Smart Crop Advisory System",
+  "short_name": "Krishi Bandhu",
   "description": "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
   "start_url": "/",
   "display": "standalone",
