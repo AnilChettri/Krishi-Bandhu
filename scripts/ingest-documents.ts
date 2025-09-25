@@ -5,7 +5,18 @@
 
 import { readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
-import { v4 as uuidv4 } from 'uuid'
+// Use crypto.randomUUID() instead of uuid package
+const uuidv4 = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback UUID v4 generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 import { ingestDocuments, addDocumentBatch, initializeRAG } from '../lib/rag-helper'
 
 // Sample agricultural documents to seed the knowledge base
@@ -401,7 +412,7 @@ async function loadDocumentsFromDirectory(dirPath: string): Promise<any[]> {
     
     console.log(`Loaded ${documents.length} documents from ${dirPath}`)
   } catch (error) {
-    console.warn(`Could not load documents from ${dirPath}:`, error.message)
+    console.warn(`Could not load documents from ${dirPath}:`, error instanceof Error ? error.message : String(error))
   }
   
   return documents
