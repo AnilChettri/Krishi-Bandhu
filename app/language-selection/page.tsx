@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Sprout, Check, ArrowRight, Globe } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { useRouter } from "next/navigation"
-import { type Language, languages } from "@/lib/i18n"
+import { type Language, languages, languageDetails } from "@/lib/i18n"
 
 export default function LanguageSelectionPage() {
   const { language, setLanguage, t } = useLanguage()
@@ -33,18 +33,10 @@ export default function LanguageSelectionPage() {
     router.push('/auth/signin')
   }
 
-  const languageOptions: { code: Language; name: string; nativeName: string; region: string }[] = [
-    { code: "en", name: "English", nativeName: "English", region: "Global" },
-    { code: "hi", name: "Hindi", nativeName: "हिन्दी", region: "भारत" },
-    { code: "bn", name: "Bengali", nativeName: "বাংলা", region: "বাংলাদেশ, ভারত" },
-    { code: "te", name: "Telugu", nativeName: "తెలుగు", region: "తెలంగాణ, ఆంధ్రప్రదేశ్" },
-    { code: "ta", name: "Tamil", nativeName: "தமிழ்", region: "தமிழ்நாடு, இலங்கை" },
-    { code: "mr", name: "Marathi", nativeName: "मराठी", region: "महाराष्ट्र" },
-    { code: "gu", name: "Gujarati", nativeName: "ગુજરાતી", region: "ગુજરાત" },
-    { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ", region: "ಕರ್ನಾಟಕ" },
-    { code: "ml", name: "Malayalam", nativeName: "മലയാളം", region: "കേരളം" },
-    { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ", region: "ਪੰਜਾਬ" },
-  ]
+  const languageOptions = Object.entries(languageDetails).map(([code, details]) => ({
+    code: code as Language,
+    ...details
+  }))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-white">

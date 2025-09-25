@@ -9,14 +9,12 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void
   t: (key: keyof typeof import("@/lib/i18n").translations.en) => string
   languages: typeof languages
-  isLoading: boolean
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en")
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Load saved language from localStorage
@@ -32,7 +30,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.lang = browserLang
       }
     }
-    setIsLoading(false)
   }, [])
 
   const setLanguage = (lang: Language) => {
