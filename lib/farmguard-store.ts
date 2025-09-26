@@ -600,7 +600,9 @@ export const useFarmGuardStore = create<FarmGuardStore>()(
           // Trigger service worker sync
           if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
             const registration = await navigator.serviceWorker.ready
-            await registration.sync.register('farmguard-data-sync')
+            if ('sync' in registration) {
+              await (registration as any).sync.register('farmguard-data-sync')
+            }
           }
           
           updateLastSync()

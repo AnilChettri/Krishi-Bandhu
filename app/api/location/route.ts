@@ -371,8 +371,8 @@ function calculateDistanceAccuracy(lat1: number, lon1: number, lat2: number, lon
   return Math.round(accuracy * 100) / 100
 }
 
-// Get agricultural recommendations based on location
-export async function getLocationBasedRecommendations(districtName: string) {
+// Get agricultural recommendations based on location (internal function)
+function getLocationBasedRecommendations(districtName: string) {
   const district = PUNJAB_DISTRICTS.find(
     d => d.name.toLowerCase() === districtName.toLowerCase()
   )

@@ -4,10 +4,11 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { CloudRain, Bot, Lightbulb, LogOut, Menu, X, Sprout } from "lucide-react"
+import { CloudRain, Bot, Lightbulb, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
 import { LanguageSelector } from "@/components/language-selector"
+import { LogoNavbar } from "@/components/ui/logo"
 
 interface KrishiBandhuLayoutProps {
   children: React.ReactNode
@@ -64,14 +65,8 @@ export default function KrishiBandhuLayout({ children }: KrishiBandhuLayoutProps
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/dashboard/farmer" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <Sprout className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Krishi Bandhu</h1>
-                <p className="text-xs text-green-100">Smart Farming Assistant</p>
-              </div>
+            <Link href="/dashboard/farmer" className="hover:opacity-90 transition-opacity">
+              <LogoNavbar textColor="text-white" priority={true} />
             </Link>
 
             {/* Desktop Navigation */}

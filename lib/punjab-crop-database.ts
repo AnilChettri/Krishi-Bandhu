@@ -1026,7 +1026,7 @@ export function getPunjabCropsByFilter(filters: {
 
   if (filters.maxInvestment) {
     filteredCrops = filteredCrops.filter(crop =>
-      crop.profitability.investmentCost <= filters.maxInvestment
+      crop.profitability.investmentCost <= filters.maxInvestment!
     )
   }
 

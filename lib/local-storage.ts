@@ -113,7 +113,7 @@ class LocalStorageService {
     return this.STORAGE_PREFIX + key;
   }
 
-  private setItem<T>(key: string, data: T, expiry: number = this.DEFAULT_EXPIRY, source: 'api' | 'fallback' | 'offline' = 'api'): boolean {
+  private setItemPrivate<T>(key: string, data: T, expiry: number = this.DEFAULT_EXPIRY, source: 'api' | 'fallback' | 'offline' = 'api'): boolean {
     try {
       if (!this.isLocalStorageAvailable()) {
         return false;
@@ -181,9 +181,14 @@ class LocalStorageService {
     }
   }
 
+  // Public generic setItem method
+  public setItem<T>(key: string, data: T, expiry: number = this.DEFAULT_EXPIRY, source: 'api' | 'fallback' | 'offline' = 'api'): boolean {
+    return this.setItemPrivate(key, data, expiry, source);
+  }
+  
   // Weather Data Methods
   setWeatherData(weatherData: WeatherCache, expiry: number = 30 * 60 * 1000): boolean {
-    return this.setItem(this.KEYS.WEATHER, weatherData, expiry, 'api');
+    return this.setItemPrivate(this.KEYS.WEATHER, weatherData, expiry, 'api');
   }
 
   getWeatherData(): WeatherCache | null {
@@ -192,12 +197,12 @@ class LocalStorageService {
   }
 
   setWeatherFallback(weatherData: WeatherCache): boolean {
-    return this.setItem(this.KEYS.WEATHER, weatherData, this.DEFAULT_EXPIRY, 'fallback');
+    return this.setItemPrivate(this.KEYS.WEATHER, weatherData, this.DEFAULT_EXPIRY, 'fallback');
   }
 
   // Market Data Methods
   setMarketData(marketData: MarketCache, expiry: number = 15 * 60 * 1000): boolean {
-    return this.setItem(this.KEYS.MARKET, marketData, expiry, 'api');
+    return this.setItemPrivate(this.KEYS.MARKET, marketData, expiry, 'api');
   }
 
   getMarketData(): MarketCache | null {
@@ -206,12 +211,12 @@ class LocalStorageService {
   }
 
   setMarketFallback(marketData: MarketCache): boolean {
-    return this.setItem(this.KEYS.MARKET, marketData, this.DEFAULT_EXPIRY, 'fallback');
+    return this.setItemPrivate(this.KEYS.MARKET, marketData, this.DEFAULT_EXPIRY, 'fallback');
   }
 
   // Location Data Methods
   setLocationData(locationData: LocationCache, expiry: number = 60 * 60 * 1000): boolean {
-    return this.setItem(this.KEYS.LOCATION, locationData, expiry, 'api');
+    return this.setItemPrivate(this.KEYS.LOCATION, locationData, expiry, 'api');
   }
 
   getLocationData(): LocationCache | null {
@@ -220,12 +225,12 @@ class LocalStorageService {
   }
 
   setLocationFallback(locationData: LocationCache): boolean {
-    return this.setItem(this.KEYS.LOCATION, locationData, this.DEFAULT_EXPIRY, 'fallback');
+    return this.setItemPrivate(this.KEYS.LOCATION, locationData, this.DEFAULT_EXPIRY, 'fallback');
   }
 
   // User Preferences Methods
   setUserPreferences(preferences: any): boolean {
-    return this.setItem(this.KEYS.USER_PREFERENCES, preferences, this.DEFAULT_EXPIRY * 30, 'offline'); // 30 days
+    return this.setItemPrivate(this.KEYS.USER_PREFERENCES, preferences, this.DEFAULT_EXPIRY * 30, 'offline'); // 30 days
   }
 
   getUserPreferences(): any {
@@ -242,7 +247,7 @@ class LocalStorageService {
         timestamp: Date.now(),
         id: this.generateId()
       });
-      return this.setItem(this.KEYS.OFFLINE_QUEUE, queue, this.DEFAULT_EXPIRY * 7, 'offline'); // 7 days
+      return this.setItemPrivate(this.KEYS.OFFLINE_QUEUE, queue, this.DEFAULT_EXPIRY * 7, 'offline'); // 7 days
     } catch (error) {
       console.error('Failed to add to offline queue:', error);
       return false;
@@ -262,7 +267,7 @@ class LocalStorageService {
     try {
       const queue = this.getOfflineQueue();
       const filteredQueue = queue.filter(item => item.id !== id);
-      return this.setItem(this.KEYS.OFFLINE_QUEUE, filteredQueue, this.DEFAULT_EXPIRY * 7, 'offline');
+      return this.setItemPrivate(this.KEYS.OFFLINE_QUEUE, filteredQueue, this.DEFAULT_EXPIRY * 7, 'offline');
     } catch (error) {
       console.error('Failed to remove from offline queue:', error);
       return false;
@@ -276,7 +281,7 @@ class LocalStorageService {
   }
 
   private setCacheMetadata(metadata: any): boolean {
-    return this.setItem('cache_metadata', metadata, this.DEFAULT_EXPIRY * 365, 'offline'); // 1 year
+    return this.setItemPrivate('cache_metadata', metadata, this.DEFAULT_EXPIRY * 365, 'offline'); // 1 year
   }
 
   private updateCacheMetadata(): void {

@@ -38,7 +38,7 @@ class FarmGuardAppInitializer {
     }
   }
 
-  private async registerServiceWorker(): Promise<void> {
+  private async registerServiceWorker(): Promise<ServiceWorkerRegistration | void> {
     if ('serviceWorker' in navigator) {
       try {
         console.log('📋 Registering Service Worker...')
@@ -178,13 +178,19 @@ class FarmGuardAppInitializer {
       try {
         const registration = await navigator.serviceWorker.ready
         
-        // Register background sync
-        await registration.sync.register('farmguard-periodic-sync')
-        
-        console.log('✅ Periodic sync registered')
+        // Check if sync is available on the registration
+        if ('sync' in registration) {
+          // Register background sync
+          await (registration as any).sync.register('farmguard-periodic-sync')
+          console.log('✅ Periodic sync registered')
+        } else {
+          console.log('⚠️ Background sync not available on this registration')
+        }
       } catch (error) {
         console.error('❌ Failed to setup periodic sync:', error)
       }
+    } else {
+      console.log('⚠️ Background sync not supported')
     }
   }
 
@@ -257,7 +263,6 @@ class FarmGuardAppInitializer {
           body,
           icon: '/icons/farmguard-icon-192.png',
           badge: '/icons/farmguard-badge.png',
-          vibrate: [200, 100, 200],
           requireInteraction: true,
           actions: [
             {
@@ -272,7 +277,7 @@ class FarmGuardAppInitializer {
             }
           ],
           ...options
-        })
+        } as any)
       })
     }
   }
@@ -309,7 +314,7 @@ class FarmGuardAppInitializer {
             icon: '/icons/later-icon.png'
           }
         ]
-      }
+      } as any
     )
   }
 

@@ -81,7 +81,7 @@ const WeatherCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Cloud className="h-5 w-5" />
-            {t('weather.title')}
+            Weather
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -90,7 +90,7 @@ const WeatherCard = () => {
           </Alert>
           <Button onClick={refreshWeather} className="mt-3" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t('common.retry')}
+            {'Retry'}
           </Button>
         </CardContent>
       </Card>
@@ -106,7 +106,7 @@ const WeatherCard = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Cloud className="h-5 w-5" />
-            {t('weather.title')}
+            Weather
           </CardTitle>
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -127,7 +127,7 @@ const WeatherCard = () => {
               <div>
                 <h3 className="text-2xl font-bold">{todayForecast.high}°C</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('weather.low')}: {todayForecast.low}°C
+                  {'Low'}: {todayForecast.low}°C
                 </p>
                 <p className="text-sm font-medium">{todayForecast.condition}</p>
               </div>
@@ -153,7 +153,7 @@ const WeatherCard = () => {
             {/* Farming Recommendations */}
             {todayForecast.farmingRecommendations && todayForecast.farmingRecommendations.length > 0 && (
               <div className="mb-4">
-                <h4 className="text-sm font-medium mb-2">{t('weather.farming_tips')}</h4>
+                <h4 className="text-sm font-medium mb-2">{'Farming Tips'}</h4>
                 <div className="space-y-1">
                   {todayForecast.farmingRecommendations.slice(0, 2).map((tip, index) => (
                     <p key={index} className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
@@ -181,7 +181,7 @@ const WeatherCard = () => {
         {weather?.alerts && weather.alerts.length > 0 && (
           <div className="mt-4">
             <WeatherAlerts 
-              alerts={weather.alerts}
+              alerts={weather.alerts as any}
               enableSound={true}
               onDismiss={(alertId) => console.log('Alert dismissed:', alertId)}
             />
@@ -230,7 +230,7 @@ const MarketCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            {t('market.title')}
+            {'Market Prices'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -239,7 +239,7 @@ const MarketCard = () => {
           </Alert>
           <Button onClick={() => fetchMarketData()} className="mt-3" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t('common.retry')}
+            {'Retry'}
           </Button>
         </CardContent>
       </Card>
@@ -254,7 +254,7 @@ const MarketCard = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Banknote className="h-5 w-5" />
-            {t('market.title')}
+            {'Market Prices'}
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>₹{market?.summary?.totalCrops || 0} crops</span>
@@ -386,7 +386,7 @@ const CropSuggestionsCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Leaf className="h-5 w-5" />
-            {t('crops.suggestions')}
+            Crop Suggestions
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -405,7 +405,7 @@ const CropSuggestionsCard = () => {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Leaf className="h-5 w-5" />
-          {t('crops.suggestions')}
+          Crop Suggestions
         </CardTitle>
         <CardDescription>
           Based on your farm profile
@@ -459,7 +459,7 @@ const ConnectivityStatus = () => {
     return (
       <div className="flex items-center gap-2 text-green-600">
         <Wifi className="h-4 w-4" />
-        <span className="text-xs">{t('common.online')}</span>
+        <span className="text-xs">Online</span>
       </div>
     )
   }
@@ -467,7 +467,7 @@ const ConnectivityStatus = () => {
   return (
     <div className="flex items-center gap-2 text-orange-600">
       <WifiOff className="h-4 w-4" />
-      <span className="text-xs">{t('common.offline')}</span>
+      <span className="text-xs">Offline</span>
     </div>
   )
 }
@@ -505,7 +505,7 @@ const QuickActions = () => {
             className="w-full justify-start"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('common.refresh_data')}
+            {'Refresh Data'}
           </Button>
           
           <Button 
@@ -514,7 +514,7 @@ const QuickActions = () => {
             onClick={() => window.location.href = '/dashboard/pest-detection'}
           >
             <Eye className="h-4 w-4 mr-2" />
-            {t('pest.detect')}
+            Detect Pests
           </Button>
           
           <Button 
@@ -523,7 +523,7 @@ const QuickActions = () => {
             onClick={() => window.location.href = '/dashboard/soil-analysis'}
           >
             <ThermometerSun className="h-4 w-4 mr-2" />
-            {t('soil.analyze')}
+            {'Analyze Soil'}
           </Button>
           
           <Button 
@@ -532,7 +532,7 @@ const QuickActions = () => {
             onClick={() => window.location.href = '/dashboard/ai-assistant'}
           >
             <Calendar className="h-4 w-4 mr-2" />
-            {t('ai.assistant')}
+            {'Feature'}
           </Button>
         </div>
 
@@ -567,8 +567,8 @@ const EnhancedDashboard = () => {
   const settings = useFarmGuardStore((state) => state.settings)
 
   // Get critical alerts for global banner
-  const criticalAlerts = weather?.alerts?.filter(alert => 
-    alert.severity === 'critical' || alert.severity === 'extreme'
+  const criticalAlerts = weather?.alerts?.filter((alert: any) => 
+    alert.severity === 'critical' || alert.severity === 'extreme' || alert.severity === 'high'
   ) || []
 
   if (!isAuthenticated) {
@@ -624,9 +624,9 @@ const EnhancedDashboard = () => {
       <div className={`container mx-auto px-4 py-6 ${criticalAlerts.length > 0 ? 'pt-20' : ''}`}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+        <h1 className="text-3xl font-bold">{'Dashboard'}</h1>
         <p className="text-muted-foreground">
-          {t('dashboard.subtitle')} {user?.name}
+          {'Dashboard'} {user?.name}
         </p>
         {settings.connectivity.lastSync && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -657,3 +657,8 @@ const EnhancedDashboard = () => {
 }
 
 export default EnhancedDashboard
+
+
+
+
+

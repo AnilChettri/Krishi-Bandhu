@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
           })
         }
       } catch (aiError) {
-        console.warn('External AI failed, trying Punjab AI:', aiError.message)
+        console.warn('External AI failed, trying Punjab AI:', aiError instanceof Error ? aiError.message : 'Unknown error')
       }
 
       // Fallback to Punjab AI for agricultural queries

@@ -36,10 +36,10 @@ export const metadata: Metadata = {
       "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
     images: [
       {
-        url: "/icon-512.jpg",
+        url: "/logo.png",
         width: 512,
         height: 512,
-        alt: "Krishi Bandhu Logo",
+        alt: "FarmGuard Logo",
       },
     ],
   },
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "Krishi Bandhu - Smart Crop Advisory System",
     description:
       "Empowering small & marginal farmers with localized crop advisory, weather alerts, market insights, and AI-powered farming assistance",
-    images: ["/icon-512.jpg"],
+    images: ["/logo.png"],
   },
   appleWebApp: {
     capable: true,
@@ -75,8 +75,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/icon-192.jpg" />
-        <link rel="apple-touch-icon" href="/icon-192.jpg" />
+        <link rel="icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <meta name="theme-color" content="#15803d" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>

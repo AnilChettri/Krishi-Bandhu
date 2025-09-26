@@ -4,11 +4,12 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Sprout, Users, Globe, ArrowRight, CheckCircle, Bot, CloudRain, TrendingUp, HelpCircle } from "lucide-react"
+import { Users, Globe, ArrowRight, CheckCircle, Bot, CloudRain, TrendingUp, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { type Language } from "@/lib/i18n"
 import VisualGuide, { VisualPointer } from "@/components/visual-guide"
+import { LogoNavbar } from "@/components/ui/logo"
 
 export default function HomePage() {
   const { language, setLanguage, t } = useLanguage()
@@ -57,10 +58,7 @@ export default function HomePage() {
       <header className="bg-green-600 text-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sprout className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">Krishi Bandhu</h1>
-            </div>
+            <LogoNavbar textColor="text-white" priority={true} />
             <div className="relative">
               <Button 
                 variant="ghost" 

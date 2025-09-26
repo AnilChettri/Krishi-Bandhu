@@ -6,12 +6,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Sprout, ArrowLeft, HelpCircle, CheckCircle } from "lucide-react"
+import { ArrowLeft, HelpCircle, CheckCircle } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { VisualPointer } from "@/components/visual-guide"
 import { LoadingButton } from "@/components/loading"
+import { LogoCompact, LogoHero } from "@/components/ui/logo"
 
 export default function LoginPage() {
   const { t } = useLanguage()
@@ -69,8 +70,7 @@ export default function LoginPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <Sprout className="h-6 w-6" />
-            <span className="font-semibold">Krishi Bandhu</span>
+            <LogoCompact size="sm" textColor="text-white" />
           </div>
         </div>
       </header>
@@ -80,8 +80,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo and Welcome */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Sprout className="h-10 w-10 text-green-600" />
+            <div className="mb-4">
+              <LogoHero textColor="text-gray-900" className="justify-center" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('welcome')}</h1>
             <p className="text-gray-600">{t('signInToContinue')}</p>
